@@ -24,7 +24,7 @@ export function ActivityFeed({ events, tags }: { events: AuditEventOut[]; tags: 
   return (
     <div className="space-y-4">
       <div className="scroll-x -mx-4 px-4 sm:mx-0 sm:px-0">
-        <div className="flex w-max gap-2">
+        <div className="flex w-max gap-2 py-2">
           {[["all", events.length] as const, ...types].map(([t, n]) => (
             <button
               key={t}
