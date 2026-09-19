@@ -5,31 +5,23 @@ import { motion } from "framer-motion";
 import banner from "../../../public/EstanciaImage.jpg";
 
 /**
- * Full-width banner for the top of the landing page. The source is a 3072x1344 image with the
- * wordmark centred near the top and the cow on the right, so on narrow screens we crop to a
- * taller box anchored right of centre to keep both in frame. next/image serves resized copies.
+ * Top-of-page banner. The image is shown whole at its own aspect ratio (no cropping, no
+ * overlays), because the wordmark is part of the picture. It sits edge to edge on phones and
+ * as a rounded card in the page grid from `sm` up, so it never grows taller than the layout.
  */
 export function HeroBanner() {
   return (
-    <div className="relative overflow-hidden bg-surface2">
-      <motion.div
-        initial={{ opacity: 0, scale: 1.04 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 1.1, ease: [0.22, 1, 0.36, 1] }}
-        className="relative aspect-[16/10] w-full sm:aspect-[2.29/1] lg:aspect-auto lg:h-[34rem]"
-      >
+    <div className="mx-auto max-w-7xl sm:px-6 sm:pt-6">
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.6 }} className="overflow-hidden bg-surface2 sm:rounded-3xl sm:border sm:border-line sm:shadow-xl sm:shadow-black/10">
         <Image
           src={banner}
           alt="Estancia: a herd of cattle grazing in a mountain valley, with icons for health, weight, location and alerts linked to one cow."
-          fill
           priority
           placeholder="blur"
-          sizes="100vw"
-          className="object-cover object-[62%_center] sm:object-center"
+          sizes="(min-width: 1280px) 1232px, 100vw"
+          className="block h-auto w-full"
         />
       </motion.div>
-      {/* Fade the bottom edge into the page so the hero below reads as one surface. */}
-      <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 h-1/4 bg-gradient-to-t from-canvas to-transparent" />
     </div>
   );
 }
