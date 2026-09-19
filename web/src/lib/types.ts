@@ -204,16 +204,24 @@ export interface DashboardData {
 }
 
 export type AlertSeverity = "critical" | "warning" | "info";
-export type AlertKind = "geofence_breach" | "health" | "vaccination_overdue" | "vaccination_due";
+export type AlertKind =
+  | "geofence_breach"
+  | "health"
+  | "vaccination_overdue"
+  | "vaccination_due"
+  | "document_expired"
+  | "document_expiring"
+  | "movement_issue";
 
 /** PROVISIONAL: derived client-side from audit/health data until an alerts endpoint exists. */
 export interface Alert {
   id: string;
   kind: AlertKind;
   severity: AlertSeverity;
-  animal_id: string;
+  /** Animal tag or document title: whatever the alert is about. */
+  subject: string;
+  href: string;
   ranch_id: string;
-  tag_id: string;
   title: string;
   detail: string;
   at: string;
@@ -230,4 +238,125 @@ export interface ZoneUpdate {
   name?: string | null;
   description?: string | null;
   active?: boolean | null;
+}
+
+// ---------- PROVISIONAL: compliance-service (schemas to be provided) ----------
+
+export const MOVEMENT_PURPOSES = ["sale", "grazing", "show", "veterinary", "transfer", "purchase"] as const;
+export type MovementPurpose = (typeof MOVEMENT_PURPOSES)[number];
+export type MovementStatus = "completed" | "pending" | "flagged";
+
+/** PROVISIONAL: one load of one or more animals leaving or arriving at a ranch. */
+export interface MovementRecord {
+  id: string;
+  ranch_id: string;
+  animal_ids: string[];
+  kind: "interstate" | "intrastate";
+  direction: "in" | "out";
+  purpose: MovementPurpose;
+  origin: string;
+  destination: string;
+  moved_at: string;
+  status: MovementStatus;
+  carrier: string | null;
+  notes: string | null;
+  document_ids: string[];
+}
+
+export const DOC_TYPES = ["cvi", "brand_inspection", "test_results", "registry_papers", "health_certificate"] as const;
+export type DocType = (typeof DOC_TYPES)[number];
+
+/** PROVISIONAL: regulatory document; the file itself would live in S3. */
+export interface ComplianceDocument {
+  id: string;
+  doc_type: DocType;
+  title: string;
+  ranch_id: string;
+  animal_ids: string[];
+  movement_id: string | null;
+  issued_at: string;
+  expires_at: string | null;
+  issued_by: string;
+  file_name: string;
+  size_kb: number;
+}
+
+/** "archived": belongs to a movement that already happened, so its expiry no longer matters. */
+export type DocStatus = "valid" | "expiring" | "expired" | "archived";
+export interface DocumentView extends ComplianceDocument {
+  status: DocStatus;
+  days_left: number | null; // negative when expired, null when it never expires
+}
+
+export interface ComplianceSummary {
+  movements_30d: number;
+  pending_movements: number;
+  flagged_movements: number;
+  docs_total: number;
+  docs_expiring: number;
+  docs_expired: number;
+}
+
+export interface MovementCreate {
+  ranch_id: string;
+  animal_ids: string[];
+  kind: "interstate" | "intrastate";
+  direction: "in" | "out";
+  purpose: MovementPurpose;
+  origin: string;
+  destination: string;
+  moved_at: string;
+  carrier?: string | null;
+  notes?: string | null;
+}
+
+export interface DocumentCreate {
+  doc_type: DocType;
+  title: string;
+  ranch_id: string;
+  animal_ids: string[];
+  movement_id: string | null;
+  issued_at: string;
+  expires_at: string | null;
+  issued_by: string;
+  file_name: string;
+  size_kb: number;
+}
+
+export interface MovementView extends MovementRecord {
+  /** Compliance problems found on this movement (missing/expiring CVI). Empty when clean. */
+  issues: string[];
+}
+
+// ---------- drill-down view models (composed in lib/api.ts) ----------
+
+export type VaccinationState = "overdue" | "due_soon" | "ok";
+
+/** Latest dose of one vaccine for one active animal, with how far it is from due. */
+export interface VaccinationRow {
+  id: string;
+  animal_id: string;
+  tag_id: string;
+  ranch_id: string;
+  ranch_name: string;
+  vaccine: string;
+  administered_at: string;
+  administered_by: string;
+  next_due_at: string;
+  state: VaccinationState;
+  /** Days until due; negative when overdue. */
+  days: number;
+}
+
+export interface BreachRow {
+  /** Same id as the alert, so acknowledging a breach marks its alert read. */
+  id: string;
+  animal_id: string;
+  tag_id: string;
+  ranch_id: string;
+  ranch_name: string;
+  occurred_at: string;
+  lon: number;
+  lat: number;
+  distance_m: number;
 }

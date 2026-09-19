@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { config } from "@fortawesome/fontawesome-svg-core";
 import "@fortawesome/fontawesome-svg-core/styles.css";
+import { WhatsNewProvider } from "@/components/whatsnew/WhatsNewProvider";
 import "./globals.css";
 
 config.autoAddCss = false;
@@ -33,7 +34,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
       </head>
-      <body>{children}</body>
+      <body>
+        <WhatsNewProvider>{children}</WhatsNewProvider>
+      </body>
     </html>
   );
 }

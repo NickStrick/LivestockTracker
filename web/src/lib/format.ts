@@ -54,6 +54,7 @@ export function eventLabel(type: string): string {
       vaccination_recorded: "Vaccination recorded",
       geofence_breach: "Geofence breach",
       movement_recorded: "Movement recorded",
+      document_uploaded: "Document uploaded",
     } as Record<string, string>
   )[type] ?? titleCase(type);
 }
@@ -73,7 +74,9 @@ export function eventSummary(type: string, d: Record<string, unknown> | null): s
     case "geofence_breach":
       return `Ping at ${Number(d.lat).toFixed(4)}, ${Number(d.lon).toFixed(4)}`;
     case "movement_recorded":
-      return `${d.from} → ${d.to}, ${d.cvi}`;
+      return `${d.direction === "in" ? "Arrived from" : "Left for"} ${d.place} (${d.purpose}, ${d.kind}${d.cvi ? ", CVI on file" : ""})`;
+    case "document_uploaded":
+      return String(d.title);
     case "zone_created":
       return `${d.name} (${titleCase(String(d.zone_type))})`;
     case "zone_updated":
@@ -84,3 +87,20 @@ export function eventSummary(type: string, d: Record<string, unknown> | null): s
       return JSON.stringify(d);
   }
 }
+
+export const fmtSize = (kb: number) => (kb >= 1024 ? `${(kb / 1024).toFixed(1)} MB` : `${kb} KB`);
+
+export const DOC_TYPE_LABEL: Record<string, string> = {
+  cvi: "CVI",
+  brand_inspection: "Brand inspection",
+  test_results: "Test results",
+  registry_papers: "Registry papers",
+  health_certificate: "Health certificate",
+};
+export const DOC_TYPE_FULL: Record<string, string> = {
+  cvi: "Certificate of Veterinary Inspection",
+  brand_inspection: "Brand inspection",
+  test_results: "Test results",
+  registry_papers: "Registry papers",
+  health_certificate: "Health certificate",
+};

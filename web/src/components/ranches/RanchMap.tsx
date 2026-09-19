@@ -18,6 +18,15 @@ const boundsOf = (ring: Ring): LatLngBoundsExpression => {
   ];
 };
 
+/** Pan/zoom to one point (used to reveal a selected animal). */
+function FlyToPoint({ lat, lon }: { lat: number; lon: number }) {
+  const map = useMap();
+  useEffect(() => {
+    map.flyTo([lat, lon], Math.max(map.getZoom(), 15), { duration: 0.8 });
+  }, [map, lat, lon]);
+  return null;
+}
+
 function FlyTo({ ring }: { ring: Ring }) {
   const map = useMap();
   useEffect(() => {
@@ -33,6 +42,7 @@ export default function RanchMap({
   layer,
   selectedZone,
   showAnimals,
+  highlight = null,
 }: {
   boundary: Ring;
   zones: ZoneOut[];
@@ -40,12 +50,17 @@ export default function RanchMap({
   layer: "street" | "satellite";
   selectedZone: string | null;
   showAnimals: boolean;
+  /** animal_id to emphasise and fly to. */
+  highlight?: string | null;
 }) {
   const router = useRouter();
   const focus = zones.find((z) => z.id === selectedZone)?.boundary ?? null;
+  const marked = animals.find((a) => a.animal_id === highlight) ?? null;
+  // Fit the initial view to the perimeter AND any animals that are outside it.
+  const fitRing: Ring = [...boundary, ...animals.map((a) => [a.lon, a.lat])];
 
   return (
-    <MapContainer bounds={boundsOf(boundary)} boundsOptions={{ padding: [24, 24] }} scrollWheelZoom={false} className={`map-${layer} h-full w-full`} attributionControl>
+    <MapContainer bounds={boundsOf(fitRing)} boundsOptions={{ padding: [24, 24] }} scrollWheelZoom={false} className={`map-${layer} h-full w-full`} attributionControl>
       <TileLayer key={layer} url={TILES[layer].url} attribution={TILES[layer].attr} />
       <Polygon positions={flip(boundary)} pathOptions={{ color: "#ffffff", weight: 3, fillOpacity: 0, dashArray: "8 6" }} />
       {zones.map((z) => {
@@ -70,8 +85,8 @@ export default function RanchMap({
           <CircleMarker
             key={a.animal_id}
             center={[a.lat, a.lon]}
-            radius={a.inside_boundary ? 5 : 8}
-            pathOptions={{ color: "#ffffff", weight: 1.5, fillColor: a.inside_boundary ? "#22c55e" : "#ef4444", fillOpacity: 1 }}
+            radius={a.animal_id === highlight ? 12 : a.inside_boundary ? 5 : 8}
+            pathOptions={{ color: a.animal_id === highlight ? "#fde047" : "#ffffff", weight: a.animal_id === highlight ? 3 : 1.5, fillColor: a.inside_boundary ? "#22c55e" : "#ef4444", fillOpacity: 1 }}
             eventHandlers={{ click: () => router.push(`/animals/${a.animal_id}`) }}
           >
             <Tooltip>
@@ -81,6 +96,7 @@ export default function RanchMap({
           </CircleMarker>
         ))}
       {focus && <FlyTo ring={focus} />}
+      {marked && <FlyToPoint lat={marked.lat} lon={marked.lon} />}
     </MapContainer>
   );
 }

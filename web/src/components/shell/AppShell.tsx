@@ -5,22 +5,27 @@ import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
 import clsx from "clsx";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faChartPie, faClockRotateLeft, faCow, faMap, faPlus } from "@fortawesome/free-solid-svg-icons";
+import { faChartPie, faClipboardCheck, faClockRotateLeft, faCow, faMap, faPlus } from "@fortawesome/free-solid-svg-icons";
 import { NotificationsBell } from "@/components/alerts/NotificationsBell";
+import { WhatsNewButton } from "@/components/whatsnew/WhatsNewButton";
+import { AnnouncementBanner } from "./AnnouncementBanner";
 import { ThemeToggle } from "./ThemeToggle";
 
 const NAV = [
-  { href: "/", label: "Dashboard", icon: faChartPie },
+  { href: "/dashboard", label: "Dashboard", icon: faChartPie },
   { href: "/animals", label: "Animals", icon: faCow },
   { href: "/ranches", label: "Ranches", icon: faMap },
+  { href: "/compliance", label: "Compliance", icon: faClipboardCheck },
   { href: "/activity", label: "Activity", icon: faClockRotateLeft },
 ];
 
-const isActive = (path: string, href: string) => (href === "/" ? path === "/" : path.startsWith(href));
+// Drill-down pages belong to the dashboard section, so keep its nav item lit on them.
+const SECTION: Record<string, string[]> = { "/dashboard": ["/dashboard", "/vaccinations", "/breaches", "/alerts"] };
+const isActive = (path: string, href: string) => (SECTION[href] ?? [href]).some((p) => path === p || path.startsWith(p + "/"));
 
 function Logo({ compact }: { compact?: boolean }) {
   return (
-    <Link href="/" className="flex items-center gap-2.5">
+    <Link href="/dashboard" className="flex items-center gap-2.5">
       <span className="grid size-9 place-items-center rounded-xl bg-primary text-primary-fg">
         <FontAwesomeIcon icon={faCow} />
       </span>
@@ -79,6 +84,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
       </aside>
 
+      <AnnouncementBanner />
+
       {/* Top bar: brand + theme on mobile, quick action on larger screens */}
       <header className="sticky top-0 z-20 flex h-14 items-center justify-between border-b border-line bg-canvas/85 px-4 backdrop-blur md:h-16 md:px-8">
         <div className="md:hidden">
@@ -86,6 +93,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
         <p className="hidden text-sm text-muted md:block">Bartlett Cattle Co.</p>
         <div className="flex items-center gap-2">
+          <WhatsNewButton />
           <NotificationsBell />
           <Link
             href="/animals/new"
@@ -106,7 +114,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden"
         aria-label="Primary"
       >
-        <ul className="mx-auto grid max-w-md grid-cols-4">
+        <ul className="mx-auto grid max-w-lg grid-cols-5">
           {NAV.map((n) => {
             const active = isActive(path, n.href);
             return (
@@ -114,7 +122,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 <Link
                   href={n.href}
                   className={clsx(
-                    "relative flex h-16 flex-col items-center justify-center gap-1 text-[11px] font-medium transition-colors",
+                    "relative flex h-16 flex-col items-center justify-center gap-1 text-[10.5px] font-medium transition-colors",
                     active ? "text-primary" : "text-muted",
                   )}
                 >

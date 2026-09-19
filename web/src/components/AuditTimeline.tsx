@@ -4,6 +4,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faCow,
   faDna,
+  faFileLines,
   faLocationDot,
   faMap,
   faPen,
@@ -23,6 +24,7 @@ const META: Record<string, { icon: IconDefinition; tone: string }> = {
   vaccination_recorded: { icon: faSyringe, tone: "bg-ok/15 text-ok" },
   geofence_breach: { icon: faTriangleExclamation, tone: "bg-danger/15 text-danger" },
   movement_recorded: { icon: faTruck, tone: "bg-accent/15 text-accent" },
+  document_uploaded: { icon: faFileLines, tone: "bg-info/15 text-info" },
   ranch_created: { icon: faMap, tone: "bg-primary/15 text-primary" },
   zone_created: { icon: faLocationDot, tone: "bg-info/15 text-info" },
   zone_updated: { icon: faLocationDot, tone: "bg-warn/15 text-warn" },

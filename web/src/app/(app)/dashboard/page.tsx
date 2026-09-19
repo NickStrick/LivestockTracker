@@ -20,9 +20,9 @@ import { Item, Stagger } from "@/components/motion";
 import { ALERT_META, SEVERITY_META } from "@/components/alerts/alertMeta";
 import { Badge, Card, CardHeader, Empty, PageHeader, ProvisionalNote } from "@/components/ui";
 
-function Kpi({ label, value, icon, tone, foot }: { label: string; value: string; icon: IconDefinition; tone: string; foot: React.ReactNode }) {
-  return (
-    <Card className="p-4 sm:p-5">
+function Kpi({ label, value, icon, tone, foot, href }: { label: string; value: string; icon: IconDefinition; tone: string; foot: React.ReactNode; href?: string }) {
+  const card = (
+    <Card className={clsx("h-full p-4 sm:p-5", href && "transition group-hover:border-primary/60 group-hover:shadow-md")}>
       <div className="flex items-start justify-between gap-2">
         <p className="text-xs font-medium text-muted sm:text-sm">{label}</p>
         <span className={clsx("grid size-8 shrink-0 place-items-center rounded-lg text-sm", tone)}>
@@ -31,7 +31,19 @@ function Kpi({ label, value, icon, tone, foot }: { label: string; value: string;
       </div>
       <p className="mt-2 text-2xl font-semibold tracking-tight tabular-nums sm:text-3xl">{value}</p>
       <div className="mt-1 text-xs text-muted">{foot}</div>
+      {href && (
+        <p className="mt-2 inline-flex items-center gap-1 text-[11px] font-medium text-primary">
+          View details <FontAwesomeIcon icon={faChevronRight} className="text-[9px] transition-transform group-hover:translate-x-0.5" />
+        </p>
+      )}
     </Card>
+  );
+  return href ? (
+    <Link href={href} className="group block h-full rounded-2xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
+      {card}
+    </Link>
+  ) : (
+    card
   );
 }
 
@@ -46,7 +58,7 @@ export default async function DashboardPage() {
 
       <Stagger className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
         <Item>
-          <Kpi label="Active head" value={fmtNum(k.active_head)} icon={faCow} tone="bg-primary/15 text-primary" foot={`${d.ranches.length} ranches`} />
+          <Kpi label="Active head" value={fmtNum(k.active_head)} icon={faCow} tone="bg-primary/15 text-primary" foot={`${d.ranches.length} ranches`} href="/animals" />
         </Item>
         <Item>
           <Kpi
@@ -68,10 +80,11 @@ export default async function DashboardPage() {
             icon={faSyringe}
             tone="bg-warn/15 text-warn"
             foot={`${k.vaccinations_due_soon} more due in 30 days`}
+            href="/vaccinations?status=overdue"
           />
         </Item>
         <Item>
-          <Kpi label="Boundary breaches" value={String(k.breaches_7d)} icon={faTriangleExclamation} tone="bg-danger/15 text-danger" foot="last 7 days" />
+          <Kpi label="Boundary breaches" value={String(k.breaches_7d)} icon={faTriangleExclamation} tone="bg-danger/15 text-danger" foot="last 7 days" href="/breaches" />
         </Item>
       </Stagger>
 
@@ -104,13 +117,13 @@ export default async function DashboardPage() {
                 const sev = SEVERITY_META[a.severity];
                 return (
                   <li key={a.id}>
-                    <Link href={`/animals/${a.animal_id}`} className="group flex items-center gap-3 px-4 py-3 transition-colors hover:bg-surface2 sm:px-5">
+                    <Link href={a.href} className="group flex items-center gap-3 px-4 py-3 transition-colors hover:bg-surface2 sm:px-5">
                       <span className={clsx("grid size-8 shrink-0 place-items-center rounded-lg text-sm", sev.chip)}>
                         <FontAwesomeIcon icon={meta.icon} />
                       </span>
                       <div className="min-w-0 flex-1">
                         <p className="truncate text-sm font-medium">
-                          <span className="font-mono text-primary">{a.tag_id}</span> · {a.title}
+                          <span className={clsx("text-primary", meta.mono && "font-mono")}>{a.subject}</span> · {a.title}
                         </p>
                         <p className="truncate text-xs text-muted">{a.detail}</p>
                       </div>

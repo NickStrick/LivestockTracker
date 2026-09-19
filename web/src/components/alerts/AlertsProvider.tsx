@@ -1,41 +1,13 @@
 "use client";
 
-import { createContext, useCallback, useContext, useMemo, useSyncExternalStore } from "react";
+import { createContext, useContext, useMemo } from "react";
 import type { Alert } from "@/lib/types";
+import { useLocalSet } from "@/lib/useLocalSet";
 
 /**
- * Read/unread state lives in localStorage for now (per browser). With a backend this
- * becomes a per-user field on the alert. useSyncExternalStore keeps SSR output
- * identical to the first client render (everything "unread", badge hidden until ready).
+ * Read state lives in localStorage for now (per browser); with a backend it becomes a
+ * per-user field on the alert. Everything reads as "unread" until `ready`.
  */
-const KEY = "estancia:read-alerts";
-const SERVER = "__server__";
-const listeners = new Set<() => void>();
-
-const read = () => {
-  try {
-    return localStorage.getItem(KEY) ?? "[]";
-  } catch {
-    return "[]";
-  }
-};
-const subscribe = (cb: () => void) => {
-  listeners.add(cb);
-  window.addEventListener("storage", cb);
-  return () => {
-    listeners.delete(cb);
-    window.removeEventListener("storage", cb);
-  };
-};
-const write = (ids: string[]) => {
-  try {
-    localStorage.setItem(KEY, JSON.stringify(ids));
-  } catch {
-    /* storage unavailable (private mode) - state simply won't persist */
-  }
-  listeners.forEach((l) => l());
-};
-
 interface AlertsContextValue {
   alerts: Alert[];
   ready: boolean;
@@ -50,31 +22,22 @@ interface AlertsContextValue {
 const Ctx = createContext<AlertsContextValue | null>(null);
 
 export function AlertsProvider({ alerts, children }: { alerts: Alert[]; children: React.ReactNode }) {
-  const raw = useSyncExternalStore(subscribe, read, () => SERVER);
-  const ready = raw !== SERVER;
-  const readIds = useMemo(() => new Set<string>(ready ? (JSON.parse(raw) as string[]) : []), [raw, ready]);
-
-  const markRead = useCallback(
-    (id: string) => {
-      if (!readIds.has(id)) write([...readIds, id]);
-    },
-    [readIds],
-  );
-  const markAllRead = useCallback(() => write(alerts.map((a) => a.id)), [alerts]);
+  const { ready, has, add } = useLocalSet("estancia:read-alerts");
 
   const value = useMemo<AlertsContextValue>(() => {
-    const unread = alerts.filter((a) => !readIds.has(a.id));
+    const unread = alerts.filter((a) => !has(a.id));
     return {
       alerts,
       ready,
       unread,
       unreadCount: unread.length,
       hasUnreadCritical: unread.some((a) => a.severity === "critical"),
-      isRead: (id) => readIds.has(id),
-      markRead,
-      markAllRead,
+      isRead: has,
+      markRead: (id) => add(id),
+      markAllRead: () => add(...alerts.map((a) => a.id)),
     };
-  }, [alerts, readIds, ready, markRead, markAllRead]);
+    // `has`/`add` change identity with the stored set, which is exactly when this must recompute.
+  }, [alerts, ready, has, add]);
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

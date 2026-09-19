@@ -112,3 +112,20 @@ export function WeightSparkline({ data }: { data: { weighed_at: string; weight_l
     </div>
   );
 }
+
+export function VaccineBreakdownChart({ data }: { data: { vaccine: string; overdue: number; due_soon: number }[] }) {
+  return (
+    <div style={{ height: Math.max(140, data.length * 44 + 30) }} className="w-full">
+      <ResponsiveContainer width="100%" height="100%">
+        <BarChart data={data} layout="vertical" margin={{ top: 4, right: 12, left: 0, bottom: 0 }} barCategoryGap={10}>
+          <CartesianGrid stroke="var(--line)" strokeDasharray="3 3" horizontal={false} />
+          <XAxis type="number" tick={AXIS} axisLine={false} tickLine={false} allowDecimals={false} />
+          <YAxis type="category" dataKey="vaccine" tick={AXIS} axisLine={false} tickLine={false} width={116} />
+          <Tooltip {...TOOLTIP} />
+          <Bar dataKey="overdue" name="Overdue" stackId="v" fill="var(--danger)" radius={[0, 0, 0, 0]} maxBarSize={20} />
+          <Bar dataKey="due_soon" name="Due in 30 days" stackId="v" fill="var(--warn)" radius={[0, 6, 6, 0]} maxBarSize={20} />
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
+  );
+}

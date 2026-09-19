@@ -12,7 +12,7 @@ export function AlertRow({ alert, read, onOpen }: { alert: Alert; read: boolean;
   const sev = SEVERITY_META[alert.severity];
   return (
     <Link
-      href={`/animals/${alert.animal_id}`}
+      href={alert.href}
       onClick={onOpen}
       className={clsx("group flex items-start gap-3 px-4 py-3 transition-colors hover:bg-surface2 focus-visible:bg-surface2 focus-visible:outline-none", !read && "bg-primary/[0.04]")}
     >
@@ -22,7 +22,7 @@ export function AlertRow({ alert, read, onOpen }: { alert: Alert; read: boolean;
       <div className="min-w-0 flex-1">
         <div className="flex items-baseline justify-between gap-2">
           <p className={clsx("truncate text-sm", read ? "font-medium" : "font-semibold")}>
-            <span className="font-mono text-primary">{alert.tag_id}</span> · {alert.title}
+            <span className={clsx("text-primary", meta.mono && "font-mono")}>{alert.subject}</span> · {alert.title}
           </p>
           <time className="shrink-0 text-[11px] text-muted" dateTime={alert.at}>
             {timeAgo(alert.at)}

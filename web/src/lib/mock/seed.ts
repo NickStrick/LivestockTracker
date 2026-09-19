@@ -7,6 +7,8 @@ import type {
   AnimalOut,
   AuditEventOut,
   BreedingEvent,
+  ComplianceDocument,
+  MovementRecord,
   GpsPosition,
   HealthObservation,
   IdentifierOut,
@@ -341,6 +343,97 @@ export const positions: GpsPosition[] = animals.filter(isActive).map((a) => {
   return { animal_id: a.id, ranch_id: a.ranch_id, lon: +lon.toFixed(6), lat: +lat.toFixed(6), recorded_at: iso(addDays(MOCK_NOW, -rand() * 0.05)), inside_boundary: inside };
 });
 
+// ---------- compliance (PROVISIONAL schemas) ----------
+
+const RANCH_STATE: Record<string, string> = { rnc_01: "TX", rnc_02: "NM" };
+const RANCH_TOWN: Record<string, string> = { rnc_01: "Rio Seco Ranch, Fredericksburg TX", rnc_02: "High Mesa Ranch, Santa Fe NM" };
+
+export const movements: MovementRecord[] = [];
+export const documents: ComplianceDocument[] = [];
+{
+  let m = 0;
+  let d = 0;
+  const soldChange = (id: string) => statusChanges.find((c) => c.id === id)?.at ?? addDays(MOCK_NOW, -30);
+  const addDoc = (doc: Omit<ComplianceDocument, "id" | "file_name" | "size_kb">, ext = "pdf") => {
+    const id = `doc_${pad(++d)}`;
+    documents.push({ ...doc, id, file_name: `${doc.doc_type}-${pad(d)}.${ext}`, size_kb: Math.floor(between(120, 2400)) });
+    return id;
+  };
+  const addMove = (
+    animalIds: string[],
+    o: Pick<MovementRecord, "kind" | "direction" | "purpose" | "destination" | "status"> & { at: Date; carrier?: string; notes?: string; cvi?: boolean; brand?: boolean; cviAgeDays?: number; origin?: string },
+  ) => {
+    const ranch = byId.get(animalIds[0])!.ranch_id;
+    const id = `mov_${pad(++m)}`;
+    const docIds: string[] = [];
+    if (o.cvi) {
+      const issued = addDays(o.at, -(o.cviAgeDays ?? 2));
+      docIds.push(
+        addDoc({ doc_type: "cvi", title: `CVI ${RANCH_STATE[ranch]}-${pad(1000 + m)}`, ranch_id: ranch, animal_ids: animalIds, movement_id: id, issued_at: iso(issued), expires_at: iso(addDays(issued, 30)), issued_by: pick(VETS.slice(0, 2)) }),
+      );
+    }
+    if (o.brand) {
+      docIds.push(addDoc({ doc_type: "brand_inspection", title: `Brand inspection ${pad(2000 + m)}`, ranch_id: ranch, animal_ids: animalIds, movement_id: id, issued_at: iso(addDays(o.at, -1)), expires_at: null, issued_by: "State brand inspector" }));
+    }
+    movements.push({
+      id,
+      ranch_id: ranch,
+      animal_ids: animalIds,
+      kind: o.kind,
+      direction: o.direction,
+      purpose: o.purpose,
+      origin: o.origin ?? RANCH_TOWN[ranch],
+      destination: o.destination,
+      moved_at: iso(o.at),
+      status: o.status,
+      carrier: o.carrier ?? null,
+      notes: o.notes ?? null,
+      document_ids: docIds,
+    });
+  };
+
+  // Sales: every sold animal left on a truck. Group per ranch; the first load stays in-state.
+  const soldByRanch = new Map<string, AnimalOut[]>();
+  for (const a of animals.filter((x) => x.status === "sold")) soldByRanch.set(a.ranch_id, [...(soldByRanch.get(a.ranch_id) ?? []), a]);
+  for (const [ranch, list] of soldByRanch) {
+    const first = list.slice(0, 2);
+    const rest = list.slice(2);
+    addMove(first.map((a) => a.id), { kind: "intrastate", direction: "out", purpose: "sale", destination: ranch === "rnc_01" ? "Kerrville Livestock Auction, TX" : "Santa Fe Livestock Market, NM", status: "completed", at: soldChange(first[0].id), carrier: "Lone Star Cattle Hauling", brand: true });
+    if (rest.length) addMove(rest.map((a) => a.id), { kind: "interstate", direction: "out", purpose: "sale", destination: ranch === "rnc_01" ? "Oklahoma National Stockyards, OK" : "Producers Livestock, Greeley CO", status: "completed", at: soldChange(rest[0].id), carrier: "High Plains Transport", cvi: true });
+  }
+
+  const r1 = animals.filter((a) => a.ranch_id === "rnc_01" && a.status === "active");
+  const r2 = animals.filter((a) => a.ranch_id === "rnc_02" && a.status === "active");
+  addMove([r1[2].id, r1[6].id], { kind: "intrastate", direction: "out", purpose: "show", destination: "Kerr County Livestock Show, TX", status: "completed", at: addDays(MOCK_NOW, -25), carrier: "Owner", brand: true });
+  addMove([r1[8].id, r1[9].id, r1[10].id], { kind: "interstate", direction: "out", purpose: "grazing", destination: "Lease pasture, Taos NM", status: "completed", at: addDays(MOCK_NOW, -62), carrier: "Rio Grande Livestock", cvi: true, cviAgeDays: 3 });
+  addMove([r2[3].id, r2[4].id], { kind: "interstate", direction: "in", purpose: "purchase", origin: "Sunrise Angus, Pueblo CO", destination: RANCH_TOWN.rnc_02, status: "completed", at: new Date("2026-03-10T15:00:00Z"), carrier: "High Plains Transport", cvi: true, cviAgeDays: 4 });
+  addMove([r2[7].id], { kind: "intrastate", direction: "out", purpose: "veterinary", destination: "Santa Fe Large Animal Clinic, NM", status: "pending", at: addDays(MOCK_NOW, 3), carrier: "Owner", notes: "Lameness workup, return same day." });
+  // Upcoming interstate sale whose CVI runs out 4 days before the truck date.
+  addMove([r1[11].id, r1[12].id], { kind: "interstate", direction: "out", purpose: "sale", destination: "Amarillo Livestock Auction, TX to KS feedlot", status: "pending", at: addDays(MOCK_NOW, 12), carrier: "Lone Star Cattle Hauling", cvi: true, cviAgeDays: 34 });
+  // Interstate move logged without a CVI -> flagged.
+  addMove([r1[13].id], { kind: "interstate", direction: "out", purpose: "sale", destination: "Sale barn, Shreveport LA", status: "flagged", at: addDays(MOCK_NOW, -12), carrier: "Unknown", notes: "CVI not attached. Follow up with the vet." });
+
+  // Per-animal documents: registry papers for registered animals, brucellosis test results.
+  for (const a of animals.filter((x) => x.registry_number && x.status === "active").slice(0, 10)) {
+    addDoc({ doc_type: "registry_papers", title: `${a.breed_association?.split(" ").slice(0, 2).join(" ")} registration ${a.registry_number}`, ranch_id: a.ranch_id, animal_ids: [a.id], movement_id: null, issued_at: a.created_at, expires_at: null, issued_by: a.breed_association ?? "Breed association" });
+  }
+  const tests: [AnimalOut, number][] = [
+    [r1[0], -335], // expires in ~30d
+    [r1[4], -350], // expires in ~15d
+    [r2[0], -378], // expired ~13d ago
+    [r2[1], -120],
+    [r1[5], -200],
+  ];
+  for (const [a, age] of tests) {
+    const issued = addDays(MOCK_NOW, age);
+    addDoc({ doc_type: "test_results", title: `Brucellosis test, ${a.tag_id}`, ranch_id: a.ranch_id, animal_ids: [a.id], movement_id: null, issued_at: iso(issued), expires_at: iso(addDays(issued, 365)), issued_by: pick(VETS.slice(0, 2)) });
+  }
+  // A herd-level health certificate for the ranch that is about to expire.
+  addDoc({ doc_type: "health_certificate", title: "Herd health certificate 2026", ranch_id: "rnc_01", animal_ids: r1.slice(0, 12).map((a) => a.id), movement_id: null, issued_at: iso(addDays(MOCK_NOW, -160)), expires_at: iso(addDays(MOCK_NOW, 20)), issued_by: "Dr. Ortiz" });
+  movements.sort((a, b) => b.moved_at.localeCompare(a.moved_at));
+  documents.sort((a, b) => b.issued_at.localeCompare(a.issued_at));
+}
+
 // ---------- audit trail ----------
 
 const ACTORS = ["usr_maria.gomez", "usr_dr.ortiz", "usr_j.bartlett"];
@@ -375,10 +468,14 @@ export const audit: AuditEventOut[] = [];
     const a = byId.get(p.animal_id)!;
     push({ animal_id: p.animal_id, ranch_id: p.ranch_id, event_type: "geofence_breach", event_data: { lon: p.lon, lat: p.lat, tag_id: a.tag_id }, actor_id: "system:gps-service", occurred_at: iso(addDays(MOCK_NOW, -Math.floor(between(0, 3)) - 0.1)) });
   }
-  // A couple of interstate movements for the compliance flavor.
-  for (const id of ["ani_0005", "ani_0018", "ani_0030"]) {
-    const a = byId.get(id)!;
-    push({ animal_id: id, ranch_id: a.ranch_id, event_type: "movement_recorded", event_data: { from: "TX", to: "NM", cvi: "CVI-2026-" + pad(Math.floor(between(100, 999))) }, actor_id: "usr_maria.gomez", occurred_at: iso(addDays(MOCK_NOW, -Math.floor(between(15, 80)))) });
+  for (const mv of movements.filter((x) => x.status !== "pending")) {
+    const to = mv.direction === "out" ? mv.destination : mv.origin;
+    for (const animalId of mv.animal_ids) {
+      push({ animal_id: animalId, ranch_id: mv.ranch_id, event_type: "movement_recorded", event_data: { direction: mv.direction, purpose: mv.purpose, kind: mv.kind, place: to, movement_id: mv.id, cvi: mv.document_ids.length > 0 }, actor_id: "usr_maria.gomez", occurred_at: mv.moved_at });
+    }
+  }
+  for (const doc of documents.filter((x) => x.doc_type !== "registry_papers")) {
+    push({ animal_id: doc.animal_ids.length === 1 ? doc.animal_ids[0] : null, ranch_id: doc.ranch_id, event_type: "document_uploaded", event_data: { title: doc.title, doc_type: doc.doc_type, document_id: doc.id }, actor_id: "usr_maria.gomez", occurred_at: doc.issued_at });
   }
   audit.sort((x, y) => y.occurred_at.localeCompare(x.occurred_at));
 }

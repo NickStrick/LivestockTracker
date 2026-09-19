@@ -3,13 +3,15 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import clsx from "clsx";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faClockRotateLeft, faDna, faHeartPulse, faLocationDot, faPen, faSyringe, faVenusMars, faWeightScale } from "@fortawesome/free-solid-svg-icons";
+import { faClipboardCheck, faClockRotateLeft, faDna, faHeartPulse, faLocationDot, faPen, faSyringe, faVenusMars, faWeightScale } from "@fortawesome/free-solid-svg-icons";
 import {
   getAnimal,
   getAnimalAuditTrail,
   getLineage,
   getPosition,
   getRanch,
+  listAnimalDocuments,
+  listAnimalMovements,
   listBreeding,
   listIdentifiers,
   listObservations,
@@ -18,7 +20,8 @@ import {
   listWeights,
 } from "@/lib/api";
 import { MOCK_NOW } from "@/lib/mock/seed";
-import { ageLabel, fmtDate, fmtNum, titleCase } from "@/lib/format";
+import { DOC_TYPE_LABEL, ageLabel, fmtDate, fmtNum, titleCase } from "@/lib/format";
+import { DocStatusBadge, MovementStatusBadge } from "@/components/compliance/badges";
 import { AuditTimeline } from "@/components/AuditTimeline";
 import { WeightSparkline } from "@/components/charts/Charts";
 import { IdentifiersCard } from "@/components/animals/IdentifiersCard";
@@ -36,7 +39,7 @@ export default async function AnimalPage({ params }: PageProps<"/animals/[id]">)
   const animal = await getAnimal(id);
   if (!animal) notFound();
 
-  const [ranch, identifiers, weights, vaccinations, observations, breeding, lineage, offspring, audit, position] = await Promise.all([
+  const [ranch, identifiers, weights, vaccinations, observations, breeding, lineage, offspring, audit, position, movements, documents] = await Promise.all([
     getRanch(animal.ranch_id),
     listIdentifiers(id),
     listWeights(id),
@@ -47,6 +50,8 @@ export default async function AnimalPage({ params }: PageProps<"/animals/[id]">)
     listOffspring(id),
     getAnimalAuditTrail(id),
     getPosition(id),
+    listAnimalMovements(id),
+    listAnimalDocuments(id),
   ]);
 
   const lastW = weights.at(-1);
@@ -192,6 +197,50 @@ export default async function AnimalPage({ params }: PageProps<"/animals/[id]">)
                   ))}
                 </div>
               </div>
+            )}
+          </Card>
+
+          <Card>
+            <CardHeader
+              title="Compliance"
+              icon={faClipboardCheck}
+              action={
+                <Link href={`/compliance/documents/new?animal=${id}`} className="text-xs font-medium text-primary hover:underline">
+                  Upload
+                </Link>
+              }
+            />
+            {movements.length === 0 && documents.length === 0 ? (
+              <Empty>No movements or documents on file.</Empty>
+            ) : (
+              <ul className="divide-y divide-line">
+                {movements.map((m) => (
+                  <li key={m.id}>
+                    <Link href={`/compliance/movements/${m.id}`} className="flex items-center justify-between gap-3 px-4 py-3 transition-colors hover:bg-surface2 sm:px-5">
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-medium">
+                          {m.direction === "out" ? "To" : "From"} {(m.direction === "out" ? m.destination : m.origin).split(",")[0]}
+                        </p>
+                        <p className="text-xs text-muted">
+                          {titleCase(m.purpose)} · {fmtDate(m.moved_at)}
+                        </p>
+                      </div>
+                      <MovementStatusBadge movement={m} />
+                    </Link>
+                  </li>
+                ))}
+                {documents.map((d) => (
+                  <li key={d.id}>
+                    <Link href={`/compliance/documents/${d.id}`} className="flex items-center justify-between gap-3 px-4 py-3 transition-colors hover:bg-surface2 sm:px-5">
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-medium">{d.title}</p>
+                        <p className="text-xs text-muted">{DOC_TYPE_LABEL[d.doc_type]}</p>
+                      </div>
+                      <DocStatusBadge status={d.status} daysLeft={d.days_left} />
+                    </Link>
+                  </li>
+                ))}
+              </ul>
             )}
           </Card>
 
