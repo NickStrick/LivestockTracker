@@ -97,8 +97,8 @@ export function VaccinationsExplorer({ rows, ranches, initial = "overdue" }: { r
             </>
           )}
         </p>
-        <div className="flex gap-2">
-          <select value={vaccine} onChange={(e) => { setVaccine(e.target.value); setLimit(PAGE); }} className={SELECT} aria-label="Vaccine">
+        <div className="flex w-full gap-2 sm:w-auto">
+          <select value={vaccine} onChange={(e) => { setVaccine(e.target.value); setLimit(PAGE); }} className={clsx(SELECT, "min-w-0 flex-1 sm:flex-none")} aria-label="Vaccine">
             <option value="">All vaccines</option>
             {vaccines.map((v) => (
               <option key={v} value={v}>
@@ -106,7 +106,7 @@ export function VaccinationsExplorer({ rows, ranches, initial = "overdue" }: { r
               </option>
             ))}
           </select>
-          <select value={ranch} onChange={(e) => { setRanch(e.target.value); setLimit(PAGE); }} className={SELECT} aria-label="Ranch">
+          <select value={ranch} onChange={(e) => { setRanch(e.target.value); setLimit(PAGE); }} className={clsx(SELECT, "min-w-0 flex-1 sm:flex-none")} aria-label="Ranch">
             <option value="">All ranches</option>
             {ranches.map((r) => (
               <option key={r.id} value={r.id}>

@@ -46,8 +46,8 @@ export function AlertsList() {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <label className="inline-flex cursor-pointer items-center gap-2 text-sm text-muted">
-            <input type="checkbox" checked={unreadOnly} onChange={(e) => setUnreadOnly(e.target.checked)} className="size-4 accent-[var(--primary)]" />
+          <label className="inline-flex min-h-10 cursor-pointer items-center gap-2 text-sm text-muted">
+            <input type="checkbox" checked={unreadOnly} onChange={(e) => setUnreadOnly(e.target.checked)} className="size-5 accent-[var(--primary)]" />
             Unread only
           </label>
           <button onClick={markAllRead} disabled={!ready || unreadCount === 0} className={btn.ghost}>

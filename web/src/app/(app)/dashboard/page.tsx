@@ -106,7 +106,7 @@ export default async function DashboardPage() {
           <CardHeader
             title="Needs attention"
             icon={faTriangleExclamation}
-            action={<Link href="/alerts" className="text-xs font-medium text-primary hover:underline">View all</Link>}
+            action={<Link href="/alerts" className="-mx-2 inline-flex min-h-10 items-center px-2 text-xs font-medium text-primary hover:underline">View all</Link>}
           />
           {d.alerts.length === 0 ? (
             <Empty>All clear. Nothing needs attention.</Empty>
@@ -138,7 +138,7 @@ export default async function DashboardPage() {
         </Card>
 
         <Card>
-          <CardHeader title="Ranches" icon={faLocationCrosshairs} action={<Link href="/ranches" className="text-xs font-medium text-primary hover:underline">View all</Link>} />
+          <CardHeader title="Ranches" icon={faLocationCrosshairs} action={<Link href="/ranches" className="-mx-2 inline-flex min-h-10 items-center px-2 text-xs font-medium text-primary hover:underline">View all</Link>} />
           <ul className="divide-y divide-line">
             {d.ranches.map((r) => (
               <li key={r.id}>
@@ -160,7 +160,7 @@ export default async function DashboardPage() {
         </Card>
 
         <Card className="lg:col-span-2">
-          <CardHeader title="Recent activity" sub="Latest audit events across services" action={<Link href="/activity" className="text-xs font-medium text-primary hover:underline">View all</Link>} />
+          <CardHeader title="Recent activity" sub="Latest audit events across services" action={<Link href="/activity" className="-mx-2 inline-flex min-h-10 items-center px-2 text-xs font-medium text-primary hover:underline">View all</Link>} />
           <AuditTimeline events={d.recent_events} tags={tags} compact />
         </Card>
         <Card>

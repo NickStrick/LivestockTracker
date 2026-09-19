@@ -16,8 +16,8 @@ export default async function AnimalsPage() {
         title="Animals"
         subtitle="Every animal across your ranches"
         actions={
-          <Link href="/animals/new" className={btn.primary + " sm:hidden"}>
-            <FontAwesomeIcon icon={faPlus} /> Add
+          <Link href="/animals/new" className={btn.primary}>
+            <FontAwesomeIcon icon={faPlus} /> Add animal
           </Link>
         }
       />

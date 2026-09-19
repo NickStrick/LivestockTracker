@@ -47,7 +47,6 @@ export function CompositionChart({ data }: { data: { label: string; value: numbe
                 <Cell key={i} fill={SLICES[i % SLICES.length]} />
               ))}
             </Pie>
-            <Tooltip {...TOOLTIP} />
           </PieChart>
         </ResponsiveContainer>
         <div className="pointer-events-none absolute inset-0 grid place-items-center text-center">

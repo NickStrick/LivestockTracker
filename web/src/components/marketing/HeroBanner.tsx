@@ -11,7 +11,7 @@ import banner from "../../../public/EstanciaImage.jpg";
  */
 export function HeroBanner() {
   return (
-    <div className="mx-auto max-w-7xl sm:px-6 sm:pt-6">
+    <div className="mx-auto max-w-7xl sm:px-6">
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.6 }} className="overflow-hidden bg-surface2 sm:rounded-3xl sm:border sm:border-line sm:shadow-xl sm:shadow-black/10">
         <Image
           src={banner}

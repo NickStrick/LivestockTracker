@@ -29,7 +29,7 @@ export function AnimalPicker({ animals, selected, onChange, error }: { animals: 
           {rows.map((a) => (
             <li key={a.id}>
               <label className="flex cursor-pointer items-center gap-3 px-3 py-2.5 text-sm transition-colors hover:bg-surface2">
-                <input type="checkbox" checked={set.has(a.id)} onChange={() => toggle(a.id)} className="size-4 accent-[var(--primary)]" />
+                <input type="checkbox" checked={set.has(a.id)} onChange={() => toggle(a.id)} className="size-5 accent-[var(--primary)]" />
                 <span className="font-mono font-medium">{a.tag_id}</span>
                 <span className="truncate text-xs text-muted">{[a.gender && titleCase(a.gender), a.color].filter(Boolean).join(" · ")}</span>
               </label>

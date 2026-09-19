@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
 import clsx from "clsx";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faChartPie, faClipboardCheck, faClockRotateLeft, faCow, faMap, faPlus } from "@fortawesome/free-solid-svg-icons";
+import { faChartPie, faClipboardCheck, faClockRotateLeft, faCow, faMap } from "@fortawesome/free-solid-svg-icons";
 import { NotificationsBell } from "@/components/alerts/NotificationsBell";
 import { WhatsNewButton } from "@/components/whatsnew/WhatsNewButton";
 import { AnnouncementBanner } from "./AnnouncementBanner";
@@ -86,7 +86,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
       <AnnouncementBanner />
 
-      {/* Top bar: brand + theme on mobile, quick action on larger screens */}
+      {/* Top bar: brand on mobile, plus what's new, notifications and (on mobile) the theme toggle */}
       <header className="sticky top-0 z-20 flex h-14 items-center justify-between border-b border-line bg-canvas/85 px-4 backdrop-blur md:h-16 md:px-8">
         <div className="md:hidden">
           <Logo />
@@ -95,12 +95,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <div className="flex items-center gap-2">
           <WhatsNewButton />
           <NotificationsBell />
-          <Link
-            href="/animals/new"
-            className="hidden h-10 items-center gap-2 rounded-xl bg-primary px-3.5 text-sm font-medium text-primary-fg transition hover:opacity-90 active:scale-[0.98] sm:inline-flex"
-          >
-            <FontAwesomeIcon icon={faPlus} /> Add animal
-          </Link>
           <span className="md:hidden">
             <ThemeToggle />
           </span>

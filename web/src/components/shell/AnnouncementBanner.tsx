@@ -46,12 +46,18 @@ export function AnnouncementBanner() {
       icon: faTriangleExclamation,
       text: allBreaches ? (
         <>
-          <b>{n === 1 ? "1 animal is" : `${n} animals are`} outside the ranch boundary.</b> {n === 1 ? critical[0].subject : critical.slice(0, 3).map((a) => a.subject).join(", ")}
-          {n > 3 && ` and ${n - 3} more`}
+          <b>{n === 1 ? "1 animal is" : `${n} animals are`} outside the ranch boundary.</b>{" "}
+          <span className="hidden sm:inline">
+            {n === 1 ? critical[0].subject : critical.slice(0, 3).map((a) => a.subject).join(", ")}
+            {n > 3 && ` and ${n - 3} more`}
+          </span>
         </>
       ) : (
         <>
-          <b>{n} critical {n === 1 ? "alert needs" : "alerts need"} attention.</b> {critical[0].subject}: {critical[0].title.toLowerCase()}
+          <b>{n} critical {n === 1 ? "alert needs" : "alerts need"} attention.</b>{" "}
+          <span className="hidden sm:inline">
+            {critical[0].subject}: {critical[0].title.toLowerCase()}
+          </span>
         </>
       ),
       action: { label: "Review", href: allBreaches ? "/breaches" : n === 1 ? critical[0].href : "/alerts" },
@@ -64,7 +70,7 @@ export function AnnouncementBanner() {
       icon: faWandMagicSparkles,
       text: (
         <>
-          <b>New in Estancia {LATEST_RELEASE.version}:</b> {LATEST_RELEASE.title}
+          <b>New in Estancia {LATEST_RELEASE.version}:</b> <span className="hidden sm:inline">{LATEST_RELEASE.title}</span>
         </>
       ),
       action: { label: "What's new", onClick: open },
@@ -89,7 +95,7 @@ export function AnnouncementBanner() {
                 {show.action.label}
               </button>
             )}
-            <button onClick={() => dismissed.add(show.key)} aria-label="Dismiss" className="grid size-7 shrink-0 place-items-center rounded-lg transition hover:bg-white/20">
+            <button onClick={() => dismissed.add(show.key)} aria-label="Dismiss" className="grid size-10 shrink-0 place-items-center rounded-lg transition hover:bg-white/20">
               <FontAwesomeIcon icon={faXmark} />
             </button>
           </div>

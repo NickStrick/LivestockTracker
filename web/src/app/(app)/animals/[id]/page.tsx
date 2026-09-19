@@ -205,7 +205,7 @@ export default async function AnimalPage({ params }: PageProps<"/animals/[id]">)
               title="Compliance"
               icon={faClipboardCheck}
               action={
-                <Link href={`/compliance/documents/new?animal=${id}`} className="text-xs font-medium text-primary hover:underline">
+                <Link href={`/compliance/documents/new?animal=${id}`} className="-mx-2 inline-flex min-h-10 items-center px-2 text-xs font-medium text-primary hover:underline">
                   Upload
                 </Link>
               }

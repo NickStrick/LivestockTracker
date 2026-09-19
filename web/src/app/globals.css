@@ -55,7 +55,23 @@
   --font-mono: var(--font-geist-mono);
 }
 
+/*
+ * Mobile safety nets. A bare `grid` has an implicit `auto` column, which grows to fit its widest
+ * child's content and pushes the whole page sideways on phones. Give every grid a shrinkable
+ * column and let its children shrink; any explicit grid-cols-* utility still overrides this.
+ */
+@layer base {
+  .grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .grid > * {
+    min-width: 0;
+  }
+}
+
 body {
+  /* `clip` (not `hidden`) so position: sticky keeps working; stray overflow can't scroll the page sideways. */
+  overflow-x: clip;
   background: var(--canvas);
   color: var(--fg);
   font-family: var(--font-geist-sans), system-ui, sans-serif;
@@ -87,4 +103,12 @@ body {
 .scroll-x {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
+}
+
+/* Leaflet's default +/- buttons are 30px; make them comfortable to hit with a thumb. */
+.leaflet-container.leaflet-touch .leaflet-bar a {
+  width: 40px;
+  height: 40px;
+  line-height: 40px;
+  font-size: 18px;
 }

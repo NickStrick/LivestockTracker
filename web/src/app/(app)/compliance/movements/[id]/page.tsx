@@ -81,7 +81,7 @@ export default async function MovementPage({ params }: PageProps<"/compliance/mo
         </div>
 
         <Card className="h-fit">
-          <CardHeader title="Documents" icon={faFileLines} action={<Link href={`/compliance/documents/new?movement=${move.id}`} className="text-xs font-medium text-primary hover:underline">Add</Link>} />
+          <CardHeader title="Documents" icon={faFileLines} action={<Link href={`/compliance/documents/new?movement=${move.id}`} className="-mx-2 inline-flex min-h-10 items-center px-2 text-xs font-medium text-primary hover:underline">Add</Link>} />
           {attached.length === 0 ? (
             <Empty>No documents attached.</Empty>
           ) : (
