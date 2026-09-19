@@ -17,6 +17,7 @@ import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 import { getDashboard, listAlerts, listAllAuditEvents } from "@/lib/api";
 import { fmtNum } from "@/lib/format";
 import { Item, Reveal, Stagger } from "@/components/motion";
+import { HeroBanner } from "@/components/marketing/HeroBanner";
 import { WhatsNewLink } from "@/components/whatsnew/WhatsNewLink";
 import { ALERT_META, SEVERITY_META } from "@/components/alerts/alertMeta";
 import { LATEST_RELEASE } from "@/lib/releases";
@@ -49,6 +50,8 @@ export default async function HomePage() {
 
   return (
     <main>
+      <HeroBanner />
+
       {/* Hero */}
       <section className="relative overflow-hidden">
         <div aria-hidden className="pointer-events-none absolute inset-0">
@@ -64,7 +67,7 @@ export default async function HomePage() {
           </svg>
         </div>
 
-        <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-4 pb-16 pt-14 sm:px-6 sm:pt-20 lg:grid-cols-[1.05fr_0.95fr] lg:gap-8 lg:pb-24 lg:pt-24">
+        <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-4 pb-16 pt-8 sm:px-6 sm:pt-10 lg:grid-cols-[1.05fr_0.95fr] lg:gap-8 lg:pb-24 lg:pt-12">
           <Stagger className="max-w-xl">
             <Item>
               <WhatsNewLink className="group inline-flex items-center gap-2 rounded-full border border-line bg-surface/80 py-1 pl-1 pr-3 text-xs font-medium backdrop-blur transition hover:border-primary/60">
