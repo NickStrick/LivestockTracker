@@ -18,6 +18,7 @@ import type {
   ZoneOut,
   ZoneType,
 } from "../types";
+import { pointInRing } from "../geo";
 
 export const MOCK_NOW = new Date("2026-09-19T15:00:00Z");
 const DAY = 86_400_000;
@@ -56,30 +57,6 @@ const toRing = (bbox: BBox, unit: number[][]): Ring => {
   ring.push(ring[0]);
   return ring;
 };
-
-export function pointInRing(lon: number, lat: number, ring: Ring): boolean {
-  let inside = false;
-  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
-    const [xi, yi] = ring[i];
-    const [xj, yj] = ring[j];
-    if (yi > lat !== yj > lat && lon < ((xj - xi) * (lat - yi)) / (yj - yi) + xi) {
-      inside = !inside;
-    }
-  }
-  return inside;
-}
-
-/** Approximate polygon area in acres (planar, good enough for a mock). */
-export function ringAcres(ring: Ring): number {
-  const lat0 = ring[0][1];
-  const kx = 111_320 * Math.cos((lat0 * Math.PI) / 180);
-  const ky = 110_540;
-  let s = 0;
-  for (let i = 0; i < ring.length - 1; i++) {
-    s += ring[i][0] * kx * ring[i + 1][1] * ky - ring[i + 1][0] * kx * ring[i][1] * ky;
-  }
-  return Math.round((Math.abs(s) / 2) * 0.000247105);
-}
 
 // ---------- ranches & zones ----------
 

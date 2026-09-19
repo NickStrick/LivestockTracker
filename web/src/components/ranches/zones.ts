@@ -17,3 +17,8 @@ export interface MapAnimal {
   lon: number;
   inside_boundary: boolean;
 }
+
+export const TILES = {
+  street: { url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", attr: "&copy; OpenStreetMap contributors" },
+  satellite: { url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", attr: "Tiles &copy; Esri" },
+};

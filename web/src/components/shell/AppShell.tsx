@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import clsx from "clsx";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faChartPie, faClockRotateLeft, faCow, faMap, faPlus } from "@fortawesome/free-solid-svg-icons";
+import { NotificationsBell } from "@/components/alerts/NotificationsBell";
 import { ThemeToggle } from "./ThemeToggle";
 
 const NAV = [
@@ -85,6 +86,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
         <p className="hidden text-sm text-muted md:block">Bartlett Cattle Co.</p>
         <div className="flex items-center gap-2">
+          <NotificationsBell />
           <Link
             href="/animals/new"
             className="hidden h-10 items-center gap-2 rounded-xl bg-primary px-3.5 text-sm font-medium text-primary-fg transition hover:opacity-90 active:scale-[0.98] sm:inline-flex"

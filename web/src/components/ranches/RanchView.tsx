@@ -3,11 +3,12 @@
 import { useState } from "react";
 import dynamic from "next/dynamic";
 import clsx from "clsx";
+import { AnimatePresence, motion } from "framer-motion";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCow, faLayerGroup, faMap, faSatellite } from "@fortawesome/free-solid-svg-icons";
-import type { Ring, ZoneOut } from "@/lib/types";
+import type { Ring, ZoneOut, ZoneUpdate } from "@/lib/types";
 import { titleCase } from "@/lib/format";
-import { Badge, Card, CardHeader } from "@/components/ui";
+import { Badge, Card, CardHeader, btn } from "@/components/ui";
 import { ZONE_COLORS, type MapAnimal } from "./zones";
 
 const RanchMap = dynamic(() => import("./RanchMap"), {
@@ -16,12 +17,77 @@ const RanchMap = dynamic(() => import("./RanchMap"), {
 });
 
 const CHIP = "inline-flex h-9 items-center gap-2 rounded-lg px-3 text-xs font-medium transition-colors";
+const INPUT = "h-10 w-full rounded-xl border border-line bg-surface px-3 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20";
 
-export function RanchView({ boundary, zones, animals }: { boundary: Ring; zones: ZoneOut[]; animals: MapAnimal[] }) {
+function ZoneEditor({ zone, onApply }: { zone: ZoneOut; onApply: (patch: ZoneUpdate) => void }) {
+  const [name, setName] = useState(zone.name);
+  const [description, setDescription] = useState(zone.description ?? "");
+  const [active, setActive] = useState(zone.active);
+  const [sent, setSent] = useState<ZoneUpdate | null>(null);
+  const dirty = name.trim() !== zone.name || (description.trim() || null) !== zone.description || active !== zone.active;
+
+  function submit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!name.trim()) return;
+    // Send only what changed (PATCH semantics).
+    const patch: ZoneUpdate = {};
+    if (name.trim() !== zone.name) patch.name = name.trim();
+    if ((description.trim() || null) !== zone.description) patch.description = description.trim() || null;
+    if (active !== zone.active) patch.active = active;
+    // TODO(backend): fetch(PATCH /ranches/{id}/zones/{zone_id})
+    onApply(patch);
+    setSent(patch);
+  }
+
+  return (
+    <motion.form initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} onSubmit={submit} className="overflow-hidden border-t border-line bg-surface2/50">
+      <div className="grid gap-3 p-4 sm:p-5">
+        <p className="text-[11px] font-medium uppercase tracking-wide text-muted">Edit zone</p>
+        <input value={name} onChange={(e) => setName(e.target.value)} className={INPUT} aria-label="Zone name" />
+        <input value={description} onChange={(e) => setDescription(e.target.value)} className={INPUT} placeholder="Description" aria-label="Description" />
+        <label className="flex cursor-pointer items-center justify-between gap-3 rounded-xl border border-line bg-surface px-3 py-2.5 text-sm">
+          <span>
+            <span className="font-medium">{active ? "Active" : "Lifted"}</span>
+            <span className="block text-xs text-muted">{active ? "Animals are tracked against this zone" : "Zone is ignored for alerts"}</span>
+          </span>
+          <input type="checkbox" checked={active} onChange={(e) => setActive(e.target.checked)} className="size-5 accent-[var(--primary)]" />
+        </label>
+        <button type="submit" disabled={!dirty || !name.trim()} className={btn.primary}>
+          Save changes
+        </button>
+        {sent && !dirty && (
+          <p className="text-xs text-muted">
+            Applied on this page only (no backend yet). Would send <b>PATCH</b> <code className="font-mono">{JSON.stringify(sent)}</code>
+          </p>
+        )}
+      </div>
+    </motion.form>
+  );
+}
+
+export function RanchView({ boundary, zones: initialZones, animals }: { boundary: Ring; zones: ZoneOut[]; animals: MapAnimal[] }) {
+  const [zones, setZones] = useState(initialZones);
   const [layer, setLayer] = useState<"street" | "satellite">("satellite");
   const [selected, setSelected] = useState<string | null>(null);
   const [showAnimals, setShowAnimals] = useState(true);
   const out = animals.filter((a) => !a.inside_boundary).length;
+  const current = zones.find((z) => z.id === selected);
+
+  function apply(id: string, patch: ZoneUpdate) {
+    setZones((zs) =>
+      zs.map((z) =>
+        z.id !== id
+          ? z
+          : {
+              ...z,
+              name: patch.name ?? z.name,
+              description: patch.description !== undefined ? patch.description : z.description,
+              active: patch.active ?? z.active,
+              lifted_at: patch.active === undefined ? z.lifted_at : patch.active ? null : new Date().toISOString(),
+            },
+      ),
+    );
+  }
 
   return (
     <div className="grid gap-4 sm:gap-6 lg:grid-cols-[1fr_22rem]">
@@ -43,7 +109,7 @@ export function RanchView({ boundary, zones, animals }: { boundary: Ring; zones:
         </div>
       </Card>
 
-      <Card className="h-fit">
+      <Card className="h-fit overflow-hidden">
         <CardHeader title="Zones" icon={faLayerGroup} sub={`${zones.filter((z) => z.active).length} active of ${zones.length}`} />
         <ul className="divide-y divide-line">
           {zones.map((z) => (
@@ -62,6 +128,7 @@ export function RanchView({ boundary, zones, animals }: { boundary: Ring; zones:
             </li>
           ))}
         </ul>
+        <AnimatePresence initial={false}>{current && <ZoneEditor key={current.id} zone={current} onApply={(p) => apply(current.id, p)} />}</AnimatePresence>
       </Card>
     </div>
   );

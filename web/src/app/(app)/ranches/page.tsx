@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faChevronRight, faCow, faLayerGroup, faMountain, faTriangleExclamation } from "@fortawesome/free-solid-svg-icons";
+import { faChevronRight, faCow, faLayerGroup, faMountain, faPlus, faTriangleExclamation } from "@fortawesome/free-solid-svg-icons";
 import { listRanches } from "@/lib/api";
 import { fmtDate, fmtNum } from "@/lib/format";
 import { Item, Stagger } from "@/components/motion";
-import { Badge, Card, PageHeader } from "@/components/ui";
+import { Badge, Card, PageHeader, btn } from "@/components/ui";
 
 export const metadata: Metadata = { title: "Ranches" };
 
@@ -13,7 +13,15 @@ export default async function RanchesPage() {
   const ranches = await listRanches();
   return (
     <>
-      <PageHeader title="Ranches" subtitle="Properties, perimeters and zones" />
+      <PageHeader
+        title="Ranches"
+        subtitle="Properties, perimeters and zones"
+        actions={
+          <Link href="/ranches/new" className={btn.primary}>
+            <FontAwesomeIcon icon={faPlus} /> Add ranch
+          </Link>
+        }
+      />
       <Stagger className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {ranches.map((r) => (
           <Item key={r.id}>

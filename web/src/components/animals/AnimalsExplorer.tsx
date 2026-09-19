@@ -11,6 +11,7 @@ import { ageLabel, titleCase } from "@/lib/format";
 import { Badge, Card, StatusBadge } from "@/components/ui";
 
 const STATUSES = ["all", "active", "sold", "deceased"] as const;
+const PAGE = 20;
 const INPUT = "h-11 rounded-xl border border-line bg-surface px-3 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20";
 
 function GenderIcon({ g }: { g: string | null }) {
@@ -24,6 +25,12 @@ export function AnimalsExplorer({ animals, ranches }: { animals: AnimalOut[]; ra
   const [status, setStatus] = useState<(typeof STATUSES)[number]>("active");
   const [ranch, setRanch] = useState("");
   const [gender, setGender] = useState("");
+  const [limit, setLimit] = useState(PAGE);
+  // Any filter change goes back to the first page.
+  const reset = <T,>(set: (v: T) => void) => (v: T) => {
+    set(v);
+    setLimit(PAGE);
+  };
 
   const ranchName = useMemo(() => Object.fromEntries(ranches.map((r) => [r.id, r.name])), [ranches]);
   const counts = useMemo(() => {
@@ -43,6 +50,7 @@ export function AnimalsExplorer({ animals, ranches }: { animals: AnimalOut[]; ra
     );
   }, [animals, q, status, ranch, gender]);
 
+  const shown = rows.slice(0, limit);
   const filtered = q || ranch || gender || status !== "active";
 
   return (
@@ -50,15 +58,15 @@ export function AnimalsExplorer({ animals, ranches }: { animals: AnimalOut[]; ra
       <div className="grid gap-2 sm:grid-cols-[1fr_auto_auto]">
         <label className="relative block">
           <FontAwesomeIcon icon={faMagnifyingGlass} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-muted" />
-          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search tag, registry #, color, breed" className={clsx(INPUT, "w-full pl-10 pr-10")} inputMode="search" />
+          <input value={q} onChange={(e) => reset(setQ)(e.target.value)} placeholder="Search tag, registry #, color, breed" className={clsx(INPUT, "w-full pl-10 pr-10")} inputMode="search" />
           {q && (
-            <button onClick={() => setQ("")} aria-label="Clear search" className="absolute right-2 top-1/2 grid size-8 -translate-y-1/2 place-items-center rounded-lg text-muted hover:text-fg">
+            <button onClick={() => reset(setQ)("")} aria-label="Clear search" className="absolute right-2 top-1/2 grid size-8 -translate-y-1/2 place-items-center rounded-lg text-muted hover:text-fg">
               <FontAwesomeIcon icon={faXmark} />
             </button>
           )}
         </label>
         <div className="grid grid-cols-2 gap-2 sm:contents">
-          <select value={ranch} onChange={(e) => setRanch(e.target.value)} className={INPUT} aria-label="Ranch">
+          <select value={ranch} onChange={(e) => reset(setRanch)(e.target.value)} className={INPUT} aria-label="Ranch">
             <option value="">All ranches</option>
             {ranches.map((r) => (
               <option key={r.id} value={r.id}>
@@ -66,7 +74,7 @@ export function AnimalsExplorer({ animals, ranches }: { animals: AnimalOut[]; ra
               </option>
             ))}
           </select>
-          <select value={gender} onChange={(e) => setGender(e.target.value)} className={INPUT} aria-label="Gender">
+          <select value={gender} onChange={(e) => reset(setGender)(e.target.value)} className={INPUT} aria-label="Gender">
             <option value="">Any gender</option>
             {["cow", "heifer", "steer", "bull"].map((g) => (
               <option key={g} value={g}>
@@ -82,7 +90,7 @@ export function AnimalsExplorer({ animals, ranches }: { animals: AnimalOut[]; ra
           {STATUSES.map((s) => (
             <button
               key={s}
-              onClick={() => setStatus(s)}
+              onClick={() => reset(setStatus)(s)}
               className={clsx("relative rounded-lg px-3.5 py-1.5 text-sm font-medium transition-colors", status === s ? "text-primary-fg" : "text-muted hover:text-fg")}
             >
               {status === s && <motion.span layoutId="status-pill" className="absolute inset-0 rounded-lg bg-primary" transition={{ type: "spring", stiffness: 500, damping: 38 }} />}
@@ -95,7 +103,7 @@ export function AnimalsExplorer({ animals, ranches }: { animals: AnimalOut[]; ra
       </div>
 
       <p className="text-xs text-muted" aria-live="polite">
-        {rows.length} {rows.length === 1 ? "animal" : "animals"}
+        {rows.length > shown.length ? `Showing ${shown.length} of ${rows.length}` : `${rows.length} ${rows.length === 1 ? "animal" : "animals"}`}
         {filtered && (
           <>
             {" · "}
@@ -106,6 +114,7 @@ export function AnimalsExplorer({ animals, ranches }: { animals: AnimalOut[]; ra
                 setRanch("");
                 setGender("");
                 setStatus("active");
+                setLimit(PAGE);
               }}
             >
               reset filters
@@ -122,7 +131,7 @@ export function AnimalsExplorer({ animals, ranches }: { animals: AnimalOut[]; ra
         <>
           {/* Mobile: cards */}
           <ul className="grid gap-2 md:hidden">
-            {rows.map((a) => (
+            {shown.map((a) => (
               <li key={a.id}>
                 <Link href={`/animals/${a.id}`} className="flex items-center gap-3 rounded-2xl border border-line bg-surface p-3.5 transition active:scale-[0.99]">
                   <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-surface2 text-lg">
@@ -158,7 +167,7 @@ export function AnimalsExplorer({ animals, ranches }: { animals: AnimalOut[]; ra
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-line">
-                  {rows.map((a) => (
+                  {shown.map((a) => (
                     <tr key={a.id} className="group transition-colors hover:bg-surface2/60">
                       <td className="px-4 py-3 font-mono font-semibold">
                         <Link href={`/animals/${a.id}`} className="hover:text-primary">
@@ -191,6 +200,13 @@ export function AnimalsExplorer({ animals, ranches }: { animals: AnimalOut[]; ra
               </table>
             </div>
           </Card>
+          {rows.length > shown.length && (
+            <div className="text-center">
+              <button onClick={() => setLimit((l) => l + PAGE)} className="rounded-xl border border-line bg-surface px-5 py-2.5 text-sm font-medium transition hover:bg-surface2 active:scale-[0.98]">
+                Show {Math.min(PAGE, rows.length - shown.length)} more
+              </button>
+            </div>
+          )}
         </>
       )}
     </div>

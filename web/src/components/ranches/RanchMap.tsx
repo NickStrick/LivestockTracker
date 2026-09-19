@@ -6,7 +6,7 @@ import { CircleMarker, MapContainer, Polygon, TileLayer, Tooltip, useMap } from 
 import type { LatLngBoundsExpression, LatLngExpression } from "leaflet";
 import "leaflet/dist/leaflet.css";
 import type { Ring, ZoneOut } from "@/lib/types";
-import { ZONE_COLORS, type MapAnimal } from "./zones";
+import { TILES, ZONE_COLORS, type MapAnimal } from "./zones";
 
 const flip = (ring: Ring): LatLngExpression[] => ring.map(([lon, lat]) => [lat, lon]);
 const boundsOf = (ring: Ring): LatLngBoundsExpression => {
@@ -25,11 +25,6 @@ function FlyTo({ ring }: { ring: Ring }) {
   }, [map, ring]);
   return null;
 }
-
-const TILES = {
-  street: { url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", attr: "&copy; OpenStreetMap contributors" },
-  satellite: { url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", attr: "Tiles &copy; Esri" },
-};
 
 export default function RanchMap({
   boundary,

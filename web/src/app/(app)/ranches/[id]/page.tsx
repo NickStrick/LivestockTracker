@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { faClockRotateLeft } from "@fortawesome/free-solid-svg-icons";
+import Link from "next/link";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faClockRotateLeft, faPlus } from "@fortawesome/free-solid-svg-icons";
 import { getRanch, getRanchAuditTrail, listAnimals, listRanchPositions, listZones } from "@/lib/api";
 import { fmtNum } from "@/lib/format";
 import { AuditTimeline } from "@/components/AuditTimeline";
 import { RanchView } from "@/components/ranches/RanchView";
-import { Badge, Card, CardHeader, PageHeader } from "@/components/ui";
+import { Badge, Card, CardHeader, PageHeader, btn } from "@/components/ui";
 
 export async function generateMetadata({ params }: PageProps<"/ranches/[id]">): Promise<Metadata> {
   const r = await getRanch((await params).id);
@@ -31,7 +33,14 @@ export default async function RanchPage({ params }: PageProps<"/ranches/[id]">) 
         title={ranch.name}
         back={{ href: "/ranches", label: "Ranches" }}
         subtitle={`${fmtNum(ranch.area_acres)} acres · ${ranch.head_count} head · ${ranch.zone_count} active zones`}
-        actions={ranch.breach_count > 0 ? <Badge tone="danger">{ranch.breach_count} outside boundary</Badge> : <Badge tone="ok">All animals inside</Badge>}
+        actions={
+          <>
+            {ranch.breach_count > 0 ? <Badge tone="danger">{ranch.breach_count} outside boundary</Badge> : <Badge tone="ok">All animals inside</Badge>}
+            <Link href={`/ranches/${id}/zones/new`} className={btn.ghost}>
+              <FontAwesomeIcon icon={faPlus} /> Add zone
+            </Link>
+          </>
+        }
       />
       <RanchView
         boundary={ranch.boundary}

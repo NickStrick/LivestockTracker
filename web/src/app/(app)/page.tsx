@@ -6,7 +6,6 @@ import {
   faArrowTrendUp,
   faChevronRight,
   faCow,
-  faHeartPulse,
   faLocationCrosshairs,
   faSyringe,
   faTriangleExclamation,
@@ -18,14 +17,8 @@ import { fmtNum, timeAgo } from "@/lib/format";
 import { ActivityChart, CompositionChart, WeightTrendChart } from "@/components/charts/Charts";
 import { AuditTimeline } from "@/components/AuditTimeline";
 import { Item, Stagger } from "@/components/motion";
-import { Badge, Card, CardHeader, Empty, PageHeader, ProvisionalNote, type Tone } from "@/components/ui";
-
-const ALERT_STYLE = {
-  geofence_breach: { icon: faLocationCrosshairs, tone: "danger" as Tone },
-  vaccination_overdue: { icon: faSyringe, tone: "warn" as Tone },
-  vaccination_due: { icon: faSyringe, tone: "info" as Tone },
-  health: { icon: faHeartPulse, tone: "danger" as Tone },
-};
+import { ALERT_META, SEVERITY_META } from "@/components/alerts/alertMeta";
+import { Badge, Card, CardHeader, Empty, PageHeader, ProvisionalNote } from "@/components/ui";
 
 function Kpi({ label, value, icon, tone, foot }: { label: string; value: string; icon: IconDefinition; tone: string; foot: React.ReactNode }) {
   return (
@@ -100,20 +93,21 @@ export default async function DashboardPage() {
           <CardHeader
             title="Needs attention"
             icon={faTriangleExclamation}
-            action={<Badge tone={d.alerts.length ? "danger" : "ok"}>{d.alerts.length} open</Badge>}
+            action={<Link href="/alerts" className="text-xs font-medium text-primary hover:underline">View all</Link>}
           />
           {d.alerts.length === 0 ? (
             <Empty>All clear. Nothing needs attention.</Empty>
           ) : (
             <ul className="divide-y divide-line">
               {d.alerts.map((a) => {
-                const s = ALERT_STYLE[a.kind];
+                const meta = ALERT_META[a.kind];
+                const sev = SEVERITY_META[a.severity];
                 return (
                   <li key={a.id}>
                     <Link href={`/animals/${a.animal_id}`} className="group flex items-center gap-3 px-4 py-3 transition-colors hover:bg-surface2 sm:px-5">
-                      <Badge tone={s.tone} className="size-8 shrink-0 justify-center !rounded-lg !p-0">
-                        <FontAwesomeIcon icon={s.icon} />
-                      </Badge>
+                      <span className={clsx("grid size-8 shrink-0 place-items-center rounded-lg text-sm", sev.chip)}>
+                        <FontAwesomeIcon icon={meta.icon} />
+                      </span>
                       <div className="min-w-0 flex-1">
                         <p className="truncate text-sm font-medium">
                           <span className="font-mono text-primary">{a.tag_id}</span> · {a.title}

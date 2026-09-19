@@ -203,12 +203,31 @@ export interface DashboardData {
   ranches: RanchSummary[];
 }
 
+export type AlertSeverity = "critical" | "warning" | "info";
+export type AlertKind = "geofence_breach" | "health" | "vaccination_overdue" | "vaccination_due";
+
+/** PROVISIONAL: derived client-side from audit/health data until an alerts endpoint exists. */
 export interface Alert {
   id: string;
-  kind: "vaccination_overdue" | "vaccination_due" | "geofence_breach" | "health";
+  kind: AlertKind;
+  severity: AlertSeverity;
   animal_id: string;
+  ranch_id: string;
   tag_id: string;
   title: string;
   detail: string;
   at: string;
+}
+
+export interface ZoneCreate {
+  name: string;
+  zone_type: ZoneType;
+  description: string | null;
+  boundary: Ring;
+}
+
+export interface ZoneUpdate {
+  name?: string | null;
+  description?: string | null;
+  active?: boolean | null;
 }
