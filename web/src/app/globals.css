@@ -1,0 +1,90 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Design tokens. Light is the base; `.dark` (set by the theme script) overrides. */
+:root {
+  --canvas: #f5f4ef;
+  --surface: #ffffff;
+  --surface2: #efede6;
+  --line: #e2dfd4;
+  --fg: #1b1f1a;
+  --muted: #6a6f65;
+  --primary: #2f6f4e;
+  --primary-fg: #ffffff;
+  --accent: #b9791f;
+  --ok: #2f7d4f;
+  --warn: #b7791f;
+  --danger: #c0392b;
+  --info: #2b6cb0;
+  color-scheme: light;
+}
+
+.dark {
+  --canvas: #0e1310;
+  --surface: #161c18;
+  --surface2: #1e2621;
+  --line: #2a352e;
+  --fg: #e9eee7;
+  --muted: #94a198;
+  --primary: #4fb07e;
+  --primary-fg: #06140c;
+  --accent: #e0a24a;
+  --ok: #56bb80;
+  --warn: #e3b04b;
+  --danger: #ef6a58;
+  --info: #6aa9ea;
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-surface2: var(--surface2);
+  --color-line: var(--line);
+  --color-fg: var(--fg);
+  --color-muted: var(--muted);
+  --color-primary: var(--primary);
+  --color-primary-fg: var(--primary-fg);
+  --color-accent: var(--accent);
+  --color-ok: var(--ok);
+  --color-warn: var(--warn);
+  --color-danger: var(--danger);
+  --color-info: var(--info);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--canvas);
+  color: var(--fg);
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Keep FontAwesome icons from flashing large before its CSS loads. */
+.svg-inline--fa {
+  height: 1em;
+  vertical-align: -0.125em;
+}
+
+/* Leaflet: dim the base map in dark mode, keep satellite imagery untouched. */
+.dark .leaflet-container.map-street .leaflet-tile-pane {
+  filter: invert(1) hue-rotate(180deg) brightness(0.9) contrast(0.9);
+}
+.leaflet-container {
+  font-family: inherit;
+  background: var(--surface2);
+}
+
+/* Recharts tooltips/legends inherit theme colors. */
+.recharts-default-tooltip {
+  background: var(--surface) !important;
+  border: 1px solid var(--line) !important;
+  border-radius: 0.75rem;
+}
+
+.scroll-x {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
