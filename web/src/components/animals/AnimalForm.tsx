@@ -15,8 +15,11 @@ import { useI18n } from "@/lib/i18n/client";
 const INPUT = "h-11 w-full rounded-xl border border-line bg-surface px-3 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20";
 const blank = (v: string) => (v.trim() === "" ? null : v.trim());
 
+const nickname = z.string().trim().max(40, "Nicknames can be up to 40 characters").nullable();
+
 const createSchema = z.object({
   tag_id: z.string().trim().min(1, "Tag ID is required"),
+  nickname,
   ranch_id: z.string().min(1, "Choose a ranch"),
   dob: z.string().nullable(),
   color: z.string().nullable(),
@@ -28,6 +31,7 @@ const createSchema = z.object({
 });
 
 const updateSchema = z.object({
+  nickname,
   color: z.string().nullable(),
   gender: z.string().nullable(),
   status: z.enum(["active", "sold", "deceased"]),
@@ -69,6 +73,7 @@ export function AnimalForm({ mode, animal, ranches, parents = [] }: Props) {
       mode === "create"
         ? createSchema.safeParse({
             tag_id: get("tag_id"),
+            nickname: blank(get("nickname")),
             ranch_id: get("ranch_id"),
             dob: blank(get("dob")),
             color: blank(get("color")),
@@ -79,6 +84,7 @@ export function AnimalForm({ mode, animal, ranches, parents = [] }: Props) {
             breed_association: blank(get("breed_association")),
           })
         : updateSchema.safeParse({
+            nickname: blank(get("nickname")),
             color: blank(get("color")),
             gender: blank(get("gender")),
             status: get("status"),
@@ -111,6 +117,9 @@ export function AnimalForm({ mode, animal, ranches, parents = [] }: Props) {
             <div className="grid gap-4 sm:grid-cols-2">
               <Row label={t("Tag ID *")} error={errors.tag_id}>
                 <input name="tag_id" className={clsx(INPUT, "font-mono")} placeholder={t("RS-142")} autoCapitalize="characters" />
+              </Row>
+              <Row label={t("Nickname")} error={errors.nickname} hint="A friendly name, shown next to the tag.">
+                <input name="nickname" className={INPUT} placeholder="Daisy" maxLength={40} />
               </Row>
               <Row label={t("Ranch *")} error={errors.ranch_id}>
                 <select name="ranch_id" className={INPUT} defaultValue={ranches[0]?.id}>
@@ -169,9 +178,12 @@ export function AnimalForm({ mode, animal, ranches, parents = [] }: Props) {
           </>
         ) : (
           <>
-            <p className="rounded-xl bg-surface2 px-3 py-2 text-xs text-muted">{t("Only color, gender, status, cause of death and registry number can be changed after registration.")}
+            <p className="rounded-xl bg-surface2 px-3 py-2 text-xs text-muted">{t("Only nickname, color, gender, status, cause of death and registry number can be changed after registration.")}
             </p>
             <div className="grid gap-4 sm:grid-cols-2">
+              <Row label={t("Nickname")} error={errors.nickname} hint="A friendly name, shown next to the tag.">
+                <input name="nickname" className={INPUT} defaultValue={d?.nickname ?? ""} maxLength={40} />
+              </Row>
               <Row label={t("Status")} error={errors.status}>
                 <select name="status" className={INPUT} value={status} onChange={(e) => setStatus(e.target.value)}>
                   <option value="active">{t("Active")}</option>

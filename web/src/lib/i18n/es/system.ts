@@ -118,6 +118,11 @@ export const ES_SYSTEM: Record<string, string> = {
   "Calving complications": "Complicaciones en el parto",
 
   // release notes (lib/releases.ts)
+  "Animal nicknames": "Apodos para los animales",
+  "Give any animal a nickname so it is easy to recognize at a glance.": "Ponle un apodo a cualquier animal para reconocerlo fácilmente de un vistazo.",
+  "Add a nickname when you register an animal, or edit it any time.": "Agrega un apodo al registrar un animal, o edítalo cuando quieras.",
+  "Nicknames show next to the tag in lists, alerts, maps and the printable record, and you can search by nickname.":
+    "Los apodos aparecen junto al arete en listas, alertas, mapas y el expediente para imprimir, y puedes buscar por apodo.",
   "Printable animal records": "Expedientes de animales para imprimir",
   "Print or save a complete health and compliance record for any animal, ready to hand to a buyer or attach to an email.":
     "Imprime o guarda un expediente sanitario y de cumplimiento completo de cualquier animal, listo para entregar a un comprador o adjuntar a un correo.",

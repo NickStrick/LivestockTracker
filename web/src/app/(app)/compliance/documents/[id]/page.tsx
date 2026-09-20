@@ -5,7 +5,7 @@ import { faCow, faDownload, faFilePdf } from "@fortawesome/free-solid-svg-icons"
 import { getDocument, getMovement, getRanch, listAnimals } from "@/lib/api";
 import { DOC_TYPE_FULL } from "@/lib/format";
 import { DocStatusBadge } from "@/components/compliance/badges";
-import { Card, CardHeader, Field, PageHeader, StatusBadge } from "@/components/ui";
+import { AnimalTag, Card, CardHeader, Field, PageHeader, StatusBadge } from "@/components/ui";
 import { getI18n, pageTitle } from "@/lib/i18n/server";
 
 export const generateMetadata = pageTitle("Document");
@@ -59,7 +59,7 @@ export default async function DocumentPage({ params }: PageProps<"/compliance/do
               {linked.map((a) => (
                 <li key={a.id}>
                   <Link href={`/animals/${a.id}`} className="flex items-center justify-between gap-3 px-4 py-3 transition-colors hover:bg-surface2 sm:px-5">
-                    <span className="font-mono text-sm font-semibold">{a.tag_id}</span>
+                    <AnimalTag tag={a.tag_id} nickname={a.nickname} className="text-sm" />
                     <StatusBadge status={a.status} />
                   </Link>
                 </li>

@@ -7,6 +7,7 @@ import { faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons";
 import type { AnimalOut } from "@/lib/types";
 
 import { useI18n } from "@/lib/i18n/client";
+import { AnimalTag } from "@/components/ui";
 
 /** Searchable multi-select of animals. `selected` holds animal ids. */
 export function AnimalPicker({ animals, selected, onChange, error }: { animals: AnimalOut[]; selected: string[]; onChange: (ids: string[]) => void; error?: string }) {
@@ -14,7 +15,7 @@ export function AnimalPicker({ animals, selected, onChange, error }: { animals: 
   const [q, setQ] = useState("");
   const rows = useMemo(() => {
     const n = q.trim().toLowerCase();
-    return animals.filter((a) => !n || a.tag_id.toLowerCase().includes(n) || a.color?.toLowerCase().includes(n) || a.gender?.includes(n));
+    return animals.filter((a) => !n || a.tag_id.toLowerCase().includes(n) || a.nickname?.toLowerCase().includes(n) || a.color?.toLowerCase().includes(n) || a.gender?.includes(n));
   }, [animals, q]);
   const set = new Set(selected);
   const toggle = (id: string) => onChange(set.has(id) ? selected.filter((x) => x !== id) : [...selected, id]);
@@ -32,7 +33,7 @@ export function AnimalPicker({ animals, selected, onChange, error }: { animals: 
             <li key={a.id}>
               <label className="flex cursor-pointer items-center gap-3 px-3 py-2.5 text-sm transition-colors hover:bg-surface2">
                 <input type="checkbox" checked={set.has(a.id)} onChange={() => toggle(a.id)} className="size-5 accent-[var(--primary)]" />
-                <span className="font-mono font-medium">{a.tag_id}</span>
+                <AnimalTag tag={a.tag_id} nickname={a.nickname} className="shrink-0 text-sm" />
                 <span className="truncate text-xs text-muted">{[a.gender && titleCase(a.gender), a.color && t(a.color)].filter(Boolean).join(" · ")}</span>
               </label>
             </li>

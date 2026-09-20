@@ -163,6 +163,7 @@ function makeAnimal(ranch: string, gender: string, dob: Date, sire: string | nul
     cause_of_death: null,
     registry_number: registered ? `${assoc.startsWith("American Angus") ? "AAA" : assoc.startsWith("American Hereford") ? "AHA" : "RAAA"}${Math.floor(between(1_000_000, 4_999_999))}` : null,
     breed_association: registered ? assoc : null,
+    nickname: null,
     created_at: iso(createdAt),
   };
   animals.push(a);
@@ -203,6 +204,10 @@ for (const id of dead) {
     statusChanges.push({ id, status: "deceased", cause: a.cause_of_death, at: addDays(MOCK_NOW, -Math.floor(between(20, 120))) });
   }
 }
+
+// A few nicknames so the feature is visible in the example data.
+const NICKNAMES: Record<string, string> = { "RS-101": "Duke", "RS-105": "Bella", "RS-108": "Daisy", "RS-128": "Peanut" };
+for (const a of animals) if (NICKNAMES[a.tag_id]) a.nickname = NICKNAMES[a.tag_id];
 
 const byId = new Map(animals.map((a) => [a.id, a]));
 export const getById = (id: string) => byId.get(id);

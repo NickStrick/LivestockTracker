@@ -7,9 +7,10 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faChevronRight, faSyringe } from "@fortawesome/free-solid-svg-icons";
 import type { VaccinationRow, VaccinationState } from "@/lib/types";
 
-import { Badge, Card, CardHeader, type Tone } from "@/components/ui";
+import { AnimalTag, Badge, Card, CardHeader, type Tone } from "@/components/ui";
 import { VaccineBreakdownChart } from "@/components/charts/Charts";
 import { useI18n } from "@/lib/i18n/client";
+import { animalLabel } from "@/lib/format";
 
 type Filter = "all" | VaccinationState;
 const SELECT = "h-10 rounded-xl border border-line bg-surface px-3 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20";
@@ -132,7 +133,7 @@ export function VaccinationsExplorer({ rows, ranches, initial = "overdue" }: { r
                 <Link href={`/animals/${r.animal_id}`} className="flex items-center gap-3 rounded-2xl border border-line bg-surface p-3.5 transition active:scale-[0.99]">
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center justify-between gap-2">
-                      <p className="font-mono text-sm font-semibold">{r.tag_id}</p>
+                      <AnimalTag tag={r.tag_id} nickname={r.nickname} className="text-sm" />
                       <StateBadge row={r} />
                     </div>
                     <p className="mt-0.5 truncate text-sm">{r.vaccine}</p>
@@ -162,9 +163,9 @@ export function VaccinationsExplorer({ rows, ranches, initial = "overdue" }: { r
                 <tbody className="divide-y divide-line">
                   {shown.map((r) => (
                     <tr key={r.id} className="group transition-colors hover:bg-surface2/60">
-                      <td className="px-4 py-3 font-mono font-semibold">
+                      <td className="px-4 py-3">
                         <Link href={`/animals/${r.animal_id}`} className="hover:text-primary">
-                          {r.tag_id}
+                          <AnimalTag tag={r.tag_id} nickname={r.nickname} />
                         </Link>
                       </td>
                       <td className="px-4 py-3">{r.vaccine}</td>
@@ -176,7 +177,7 @@ export function VaccinationsExplorer({ rows, ranches, initial = "overdue" }: { r
                       <td className="px-4 py-3 text-muted">{r.ranch_name}</td>
                       <td className="hidden px-4 py-3 text-muted xl:table-cell">{r.administered_by}</td>
                       <td className="px-4 py-3 text-right">
-                        <Link href={`/animals/${r.animal_id}`} aria-label={t("Open {tag}", { tag: r.tag_id })} className="text-muted group-hover:text-primary">
+                        <Link href={`/animals/${r.animal_id}`} aria-label={t("Open {tag}", { tag: animalLabel(r.tag_id, r.nickname) })} className="text-muted group-hover:text-primary">
                           <FontAwesomeIcon icon={faChevronRight} className="text-xs" />
                         </Link>
                       </td>

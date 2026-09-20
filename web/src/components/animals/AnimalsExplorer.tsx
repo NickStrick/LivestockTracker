@@ -8,8 +8,9 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faChevronRight, faMagnifyingGlass, faMars, faVenus, faXmark } from "@fortawesome/free-solid-svg-icons";
 import type { AnimalOut } from "@/lib/types";
 
-import { Badge, Card, StatusBadge } from "@/components/ui";
+import { AnimalTag, Badge, Card, StatusBadge } from "@/components/ui";
 import { useI18n } from "@/lib/i18n/client";
+import { animalLabel } from "@/lib/format";
 
 const STATUSES = ["all", "active", "sold", "deceased"] as const;
 const PAGE = 20;
@@ -48,7 +49,7 @@ export function AnimalsExplorer({ animals, ranches }: { animals: AnimalOut[]; ra
         (status === "all" || a.status === status) &&
         (!ranch || a.ranch_id === ranch) &&
         (!gender || a.gender === gender) &&
-        (!needle || [a.tag_id, a.registry_number, a.color, a.breed_association].some((f) => f?.toLowerCase().includes(needle))),
+        (!needle || [a.tag_id, a.nickname, a.registry_number, a.color, a.breed_association].some((f) => f?.toLowerCase().includes(needle))),
     );
   }, [animals, q, status, ranch, gender]);
 
@@ -60,7 +61,7 @@ export function AnimalsExplorer({ animals, ranches }: { animals: AnimalOut[]; ra
       <div className="grid gap-2 sm:grid-cols-[1fr_auto_auto]">
         <label className="relative block">
           <FontAwesomeIcon icon={faMagnifyingGlass} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-muted" />
-          <input value={q} onChange={(e) => reset(setQ)(e.target.value)} placeholder={t("Search tag, registry #, color, breed")} className={clsx(INPUT, "w-full pl-10 pr-10")} inputMode="search" />
+          <input value={q} onChange={(e) => reset(setQ)(e.target.value)} placeholder={t("Search nickname, tag or registry #")} className={clsx(INPUT, "w-full pl-10 pr-10")} inputMode="search" />
           {q && (
             <button onClick={() => reset(setQ)("")} aria-label={t("Clear search")} className="absolute right-2 top-1/2 grid size-8 -translate-y-1/2 place-items-center rounded-lg text-muted hover:text-fg">
               <FontAwesomeIcon icon={faXmark} />
@@ -140,7 +141,7 @@ export function AnimalsExplorer({ animals, ranches }: { animals: AnimalOut[]; ra
                   </span>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
-                      <p className="font-mono text-sm font-semibold">{a.tag_id}</p>
+                      <AnimalTag tag={a.tag_id} nickname={a.nickname} className="text-sm" />
                       <StatusBadge status={a.status} />
                     </div>
                     <p className="mt-0.5 truncate text-xs text-muted">
@@ -170,9 +171,9 @@ export function AnimalsExplorer({ animals, ranches }: { animals: AnimalOut[]; ra
                 <tbody className="divide-y divide-line">
                   {shown.map((a) => (
                     <tr key={a.id} className="group transition-colors hover:bg-surface2/60">
-                      <td className="px-4 py-3 font-mono font-semibold">
+                      <td className="px-4 py-3">
                         <Link href={`/animals/${a.id}`} className="hover:text-primary">
-                          {a.tag_id}
+                          <AnimalTag tag={a.tag_id} nickname={a.nickname} />
                         </Link>
                       </td>
                       <td className="px-4 py-3">
@@ -191,7 +192,7 @@ export function AnimalsExplorer({ animals, ranches }: { animals: AnimalOut[]; ra
                         {a.registry_number ? <Badge>{a.registry_number}</Badge> : <span className="text-muted">-</span>}
                       </td>
                       <td className="px-4 py-3 text-right">
-                        <Link href={`/animals/${a.id}`} aria-label={t("Open {tag}", { tag: a.tag_id })} className="text-muted group-hover:text-primary">
+                        <Link href={`/animals/${a.id}`} aria-label={t("Open {tag}", { tag: animalLabel(a.tag_id, a.nickname) })} className="text-muted group-hover:text-primary">
                           <FontAwesomeIcon icon={faChevronRight} className="text-xs" />
                         </Link>
                       </td>

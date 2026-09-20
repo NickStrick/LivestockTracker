@@ -6,6 +6,7 @@ import { createI18n } from "@/lib/i18n/create";
 import { DOC_TYPE_LABEL } from "@/lib/format";
 import { MOCK_NOW } from "@/lib/clock";
 import type { SectionId } from "./sections";
+import { animalLabel } from "@/lib/format";
 
 /**
  * The printable record. It is deliberately independent of the app's theme and language: it always
@@ -114,6 +115,7 @@ export function RecordsSheet(p: RecordsSheetProps) {
 
       <div className="mt-5 flex flex-wrap items-baseline gap-x-4 gap-y-1">
         <p className="font-mono text-3xl font-semibold tracking-tight">{animal.tag_id}</p>
+        {animal.nickname && <p className="text-2xl font-semibold text-neutral-600">“{animal.nickname}”</p>}
         <p className="text-sm text-neutral-600">
           {titleCase(animal.status)}
           {animal.cause_of_death ? ` · ${t(animal.cause_of_death)}` : ""}
@@ -122,14 +124,15 @@ export function RecordsSheet(p: RecordsSheetProps) {
 
       <Section title={t("Identification")}>
         <dl className="mt-3 grid grid-cols-2 gap-x-6 gap-y-3 sm:grid-cols-3">
+          <Field label={t("Nickname")}>{animal.nickname}</Field>
           <Field label={t("Gender")}>{animal.gender ? titleCase(animal.gender) : null}</Field>
           <Field label={t("Color")}>{animal.color ? t(animal.color) : null}</Field>
           <Field label={t("Date of birth")}>{animal.dob ? `${fmtDate(animal.dob)} (${ageLabel(animal.dob)})` : null}</Field>
           <Field label={t("Registry number")}>{animal.registry_number}</Field>
           <Field label={t("Breed association")}>{animal.breed_association}</Field>
           <Field label={t("Ranch")}>{ranch?.name}</Field>
-          <Field label={t("Sire")}>{p.sire?.tag_id}</Field>
-          <Field label={t("Dam")}>{p.dam?.tag_id}</Field>
+          <Field label={t("Sire")}>{p.sire ? animalLabel(p.sire.tag_id, p.sire.nickname) : null}</Field>
+          <Field label={t("Dam")}>{p.dam ? animalLabel(p.dam.tag_id, p.dam.nickname) : null}</Field>
           <Field label={t("Identifiers")}>
             {p.identifiers.length > 0 && (
               <span className="block space-y-0.5">

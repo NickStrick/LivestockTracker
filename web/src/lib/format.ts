@@ -17,3 +17,6 @@ export const DOC_TYPE_FULL: Record<string, string> = {
   registry_papers: "Registry papers",
   health_certificate: "Health certificate",
 };
+
+/** Plain-text name for an animal: "RS-108" or, with a nickname, RS-108 “Daisy”. */
+export const animalLabel = (tag: string, nickname?: string | null) => (nickname ? `${tag} “${nickname}”` : tag);

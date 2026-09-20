@@ -25,6 +25,8 @@ export interface AnimalOut {
   cause_of_death: string | null;
   registry_number: string | null;
   breed_association: string | null;
+  /** PROVISIONAL: not in the animal-service swagger yet. A friendly name shown next to the tag. */
+  nickname?: string | null;
   created_at: string; // date-time
 }
 
@@ -38,9 +40,11 @@ export interface AnimalCreate {
   dam_id?: string | null;
   registry_number?: string | null;
   breed_association?: string | null;
+  nickname?: string | null; // PROVISIONAL
 }
 
 export interface AnimalUpdate {
+  nickname?: string | null; // PROVISIONAL
   color?: string | null;
   gender?: string | null;
   status?: AnimalStatus | null;
@@ -124,6 +128,7 @@ export interface LineageNode {
   tag_id: string;
   gender: string | null;
   dob: string | null;
+  nickname?: string | null;
   sire: LineageNode | null;
   dam: LineageNode | null;
 }
@@ -337,6 +342,7 @@ export interface VaccinationRow {
   id: string;
   animal_id: string;
   tag_id: string;
+  nickname: string | null;
   ranch_id: string;
   ranch_name: string;
   vaccine: string;
@@ -353,6 +359,7 @@ export interface BreachRow {
   id: string;
   animal_id: string;
   tag_id: string;
+  nickname: string | null;
   ranch_id: string;
   ranch_name: string;
   occurred_at: string;

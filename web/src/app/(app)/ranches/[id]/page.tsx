@@ -10,6 +10,7 @@ import { RanchView } from "@/components/ranches/RanchView";
 import { Badge, Card, CardHeader, PageHeader } from "@/components/ui";
 import { btn } from "@/components/ui-styles";
 import { getI18n } from "@/lib/i18n/server";
+import { animalLabel } from "@/lib/format";
 
 export async function generateMetadata({ params }: PageProps<"/ranches/[id]">): Promise<Metadata> {
   const { t } = await getI18n();
@@ -29,7 +30,7 @@ export default async function RanchPage({ params }: PageProps<"/ranches/[id]">) 
     listAnimals({ ranch_id: id }),
     getRanchAuditTrail(id),
   ]);
-  const tag = new Map(animals.map((a) => [a.id, a.tag_id]));
+  const tag = new Map(animals.map((a) => [a.id, animalLabel(a.tag_id, a.nickname)]));
 
   return (
     <>

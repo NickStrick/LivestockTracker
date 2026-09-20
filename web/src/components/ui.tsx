@@ -51,7 +51,7 @@ export function StatusBadge({ status }: { status: string }) {
   );
 }
 
-export function PageHeader({ title, subtitle, actions, back }: { title: string; subtitle?: string; actions?: React.ReactNode; back?: { href: string; label: string } }) {
+export function PageHeader({ title, subtitle, actions, back }: { title: React.ReactNode; subtitle?: string; actions?: React.ReactNode; back?: { href: string; label: string } }) {
   const { t } = useI18n();
   return (
     <div className="mb-5 sm:mb-6">
@@ -68,6 +68,16 @@ export function PageHeader({ title, subtitle, actions, back }: { title: string; 
         {actions && <div className="flex items-center gap-2">{actions}</div>}
       </div>
     </div>
+  );
+}
+
+/** An animal's tag (monospace) with its nickname beside it when there is one. */
+export function AnimalTag({ tag, nickname, className }: { tag: string; nickname?: string | null; className?: string }) {
+  return (
+    <span className={clsx("inline-flex min-w-0 items-baseline gap-1.5", className)}>
+      <span className="font-mono font-semibold">{tag}</span>
+      {nickname && <span className="truncate font-normal text-muted">“{nickname}”</span>}
+    </span>
   );
 }
 

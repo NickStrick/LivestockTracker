@@ -189,7 +189,7 @@ export const ES_UI: Record<string, string> = {
 
   // search & filters
   "Search animals": "Buscar animales",
-  "Search tag, registry #, color, breed": "Buscar arete, n.º de registro, color, raza",
+  "Search nickname, tag or registry #": "Buscar apodo, arete o registro",
   "No animals available.": "No hay animales disponibles.",
   "No animals match these filters.": "Ningún animal coincide con estos filtros.",
   "No documents match these filters.": "Ningún documento coincide con estos filtros.",
@@ -214,8 +214,11 @@ export const ES_UI: Record<string, string> = {
   "Upload document": "Subir documento",
   "Onboard ranch": "Dar de alta rancho",
   "Register a new animal in the herd": "Registra un animal nuevo en el hato",
-  "Only color, gender, status, cause of death and registry number can be changed after registration.":
-    "Después del registro solo se pueden cambiar el color, el sexo, el estado, la causa de muerte y el número de registro.",
+  "Only nickname, color, gender, status, cause of death and registry number can be changed after registration.":
+    "Después del registro solo se pueden cambiar el apodo, el color, el sexo, el estado, la causa de muerte y el número de registro.",
+  Nickname: "Apodo",
+  "A friendly name, shown next to the tag.": "Un nombre para reconocerlo fácil; se muestra junto al arete.",
+  "Nicknames can be up to 40 characters": "Los apodos pueden tener hasta 40 caracteres",
   "Only applies when deceased": "Solo aplica si el animal falleció",
   "Tag ID is required": "El ID del arete es obligatorio",
   "Choose a ranch": "Elige un rancho",

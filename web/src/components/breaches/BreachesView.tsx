@@ -9,9 +9,10 @@ import { faCheck, faLocationCrosshairs, faMap, faSatellite } from "@fortawesome/
 import type { BreachRow, Ring, ZoneOut } from "@/lib/types";
 
 import { useAlerts } from "@/components/alerts/AlertsProvider";
-import { Badge, Card, CardHeader } from "@/components/ui";
+import { AnimalTag, Badge, Card, CardHeader } from "@/components/ui";
 import { useI18n } from "@/lib/i18n/client";
 import { MapLoading } from "@/components/ranches/MapLoading";
+import { animalLabel } from "@/lib/format";
 
 const RanchMap = dynamic(() => import("@/components/ranches/RanchMap"), {
   ssr: false,
@@ -40,7 +41,7 @@ export function BreachesView({ breaches, ranches }: { breaches: BreachRow[]; ran
   const list = breaches.filter((b) => b.ranch_id === ranchId);
   const open = breaches.filter((b) => !(ready && isRead(b.id))).length;
   const farthest = breaches.reduce((m, b) => Math.max(m, b.distance_m), 0);
-  const mapAnimals = list.map((b) => ({ animal_id: b.animal_id, tag_id: b.tag_id, lat: b.lat, lon: b.lon, inside_boundary: false }));
+  const mapAnimals = list.map((b) => ({ animal_id: b.animal_id, tag_id: animalLabel(b.tag_id, b.nickname), lat: b.lat, lon: b.lon, inside_boundary: false }));
 
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -100,8 +101,8 @@ export function BreachesView({ breaches, ranches }: { breaches: BreachRow[]; ran
                 <li key={b.id} className={clsx("px-4 py-3.5 transition-colors sm:px-5", selected === b.animal_id && "bg-surface2", acked && "opacity-70")}>
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
-                      <Link href={`/animals/${b.animal_id}`} className="font-mono text-sm font-semibold text-primary hover:underline">
-                        {b.tag_id}
+                      <Link href={`/animals/${b.animal_id}`} className="text-sm text-primary hover:underline">
+                        <AnimalTag tag={b.tag_id} nickname={b.nickname} />
                       </Link>
                       <p className="mt-0.5 text-xs text-muted" title={fmtDateTime(b.occurred_at)}>
                         {timeAgo(b.occurred_at)} · {b.lat.toFixed(4)}, {b.lon.toFixed(4)}

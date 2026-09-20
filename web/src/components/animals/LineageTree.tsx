@@ -3,6 +3,7 @@ import clsx from "clsx";
 import type { LineageNode } from "@/lib/types";
 
 import { getI18n } from "@/lib/i18n/server";
+import { AnimalTag } from "@/components/ui";
 
 async function Node({ node, role }: { node: LineageNode | null; role: "Sire" | "Dam" }) {
   const { t, fmtDate, titleCase } = await getI18n();
@@ -15,7 +16,7 @@ async function Node({ node, role }: { node: LineageNode | null; role: "Sire" | "
           className={clsx("block rounded-xl border px-3 py-2 transition hover:border-primary", male ? "border-info/30 bg-info/5" : "border-accent/30 bg-accent/5")}
         >
           <p className="text-[10px] font-medium uppercase tracking-wide text-muted">{role}</p>
-          <p className="font-mono text-sm font-semibold">{node.tag_id}</p>
+          <AnimalTag tag={node.tag_id} nickname={node.nickname} className="flex text-sm" />
           <p className="truncate text-[11px] text-muted">{[node.gender && titleCase(node.gender), fmtDate(node.dob)].filter(Boolean).join(" · ")}</p>
         </Link>
       ) : (

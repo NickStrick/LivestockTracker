@@ -11,6 +11,16 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: "0.7.0",
+    date: "2026-09-20",
+    title: "Animal nicknames",
+    summary: "Give any animal a nickname so it is easy to recognize at a glance.",
+    items: [
+      { type: "new", text: "Add a nickname when you register an animal, or edit it any time." },
+      { type: "improved", text: "Nicknames show next to the tag in lists, alerts, maps and the printable record, and you can search by nickname." },
+    ],
+  },
+  {
     version: "0.6.0",
     date: "2026-09-20",
     title: "Printable animal records",

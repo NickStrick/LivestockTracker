@@ -20,6 +20,7 @@ import {
   zones,
 } from "./mock/seed";
 import { distanceToRingMeters, ringAcres } from "./geo";
+import { animalLabel } from "./format";
 import type {
   Alert,
   AlertSeverity,
@@ -72,6 +73,7 @@ export async function getLineage(id: string, depth = 3): Promise<LineageNode | n
       tag_id: a.tag_id,
       gender: a.gender,
       dob: a.dob,
+      nickname: a.nickname ?? null,
       sire: d > 0 ? build(a.sire_id, d - 1) : null,
       dam: d > 0 ? build(a.dam_id, d - 1) : null,
     };
@@ -147,9 +149,9 @@ export async function listRanchPositions(ranchId: string): Promise<GpsPosition[]
   return positions.filter((p) => p.ranch_id === ranchId);
 }
 
-/** animal_id -> tag_id, for linking audit events to animals. */
+/** animal_id -> display label (tag, plus nickname when set), for linking audit events and map markers to animals. */
 export async function getAnimalTags(): Promise<Record<string, string>> {
-  return Object.fromEntries(animals.map((a) => [a.id, a.tag_id]));
+  return Object.fromEntries(animals.map((a) => [a.id, animalLabel(a.tag_id, a.nickname)]));
 }
 
 /** All events across ranches (cross-service audit feed). */
@@ -245,7 +247,10 @@ const SEVERITY_RANK: Record<AlertSeverity, number> = { critical: 0, warning: 1, 
 /** PROVISIONAL: alerts are derived here; a real backend would own and persist them. */
 function buildAlerts(): Alert[] {
   const { activeIds, overdue, dueSoon } = vaccinationStatus();
-  const tag = (id: string) => getById(id)?.tag_id ?? id;
+  const tag = (id: string) => {
+    const a = getById(id);
+    return a ? animalLabel(a.tag_id, a.nickname) : id;
+  };
   const ranchOf = (id: string) => getById(id)?.ranch_id ?? "";
   const fmt = (iso: string) => new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" });
 
@@ -352,6 +357,7 @@ export async function listVaccinationStatus(): Promise<VaccinationRow[]> {
         id: v.id,
         animal_id: a.id,
         tag_id: a.tag_id,
+        nickname: a.nickname ?? null,
         ranch_id: a.ranch_id,
         ranch_name: ranchName.get(a.ranch_id) ?? "",
         vaccine: v.vaccine,
@@ -377,6 +383,7 @@ export async function listBreaches(): Promise<BreachRow[]> {
         id: e.id,
         animal_id: e.animal_id!,
         tag_id: getById(e.animal_id!)?.tag_id ?? "",
+        nickname: getById(e.animal_id!)?.nickname ?? null,
         ranch_id: ranch.id,
         ranch_name: ranch.name,
         occurred_at: e.occurred_at,

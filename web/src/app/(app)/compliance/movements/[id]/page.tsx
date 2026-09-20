@@ -5,7 +5,7 @@ import { faCow, faFileLines, faPaperclip, faTriangleExclamation } from "@fortawe
 import { getMovement, getRanch, listAnimals, listDocuments } from "@/lib/api";
 import { DOC_TYPE_LABEL } from "@/lib/format";
 import { DirectionBadge, DocStatusBadge, MovementStatusBadge } from "@/components/compliance/badges";
-import { Badge, Card, CardHeader, Empty, Field, PageHeader, StatusBadge } from "@/components/ui";
+import { AnimalTag, Badge, Card, CardHeader, Empty, Field, PageHeader, StatusBadge } from "@/components/ui";
 import { btn } from "@/components/ui-styles";
 import { getI18n, pageTitle } from "@/lib/i18n/server";
 
@@ -71,7 +71,7 @@ export default async function MovementPage({ params }: PageProps<"/compliance/mo
                 <li key={a.id}>
                   <Link href={`/animals/${a.id}`} className="flex items-center justify-between gap-3 px-4 py-3 transition-colors hover:bg-surface2 sm:px-5">
                     <div>
-                      <p className="font-mono text-sm font-semibold">{a.tag_id}</p>
+                      <AnimalTag tag={a.tag_id} nickname={a.nickname} className="flex text-sm" />
                       <p className="text-xs text-muted">{[a.gender && titleCase(a.gender), a.color && t(a.color)].filter(Boolean).join(" · ")}</p>
                     </div>
                     <StatusBadge status={a.status} />

@@ -4,6 +4,7 @@ import { AnimalForm } from "@/components/animals/AnimalForm";
 import { PageHeader } from "@/components/ui";
 import { pageTitle } from "@/lib/i18n/server";
 import { getI18n } from "@/lib/i18n/server";
+import { animalLabel } from "@/lib/format";
 
 export const generateMetadata = pageTitle("Edit animal");
 
@@ -14,7 +15,7 @@ export default async function EditAnimalPage({ params }: PageProps<"/animals/[id
   if (!animal) notFound();
   return (
     <>
-      <PageHeader title={t("Edit {tag}", { tag: animal.tag_id })} back={{ href: `/animals/${animal.id}`, label: animal.tag_id }} />
+      <PageHeader title={t("Edit {tag}", { tag: animalLabel(animal.tag_id, animal.nickname) })} back={{ href: `/animals/${animal.id}`, label: animalLabel(animal.tag_id, animal.nickname) }} />
       <AnimalForm mode="edit" animal={animal} ranches={ranches.map((r) => ({ id: r.id, name: r.name }))} />
     </>
   );

@@ -30,11 +30,12 @@ import { FadeIn } from "@/components/motion";
 import { Badge, Card, CardHeader, Empty, Field, PageHeader, ProvisionalNote, StatusBadge } from "@/components/ui";
 import { btn } from "@/components/ui-styles";
 import { getI18n } from "@/lib/i18n/server";
+import { animalLabel } from "@/lib/format";
 
 export async function generateMetadata({ params }: PageProps<"/animals/[id]">): Promise<Metadata> {
   const { t } = await getI18n();
   const a = await getAnimal((await params).id);
-  return { title: a ? a.tag_id : t("Animal") };
+  return { title: a ? animalLabel(a.tag_id, a.nickname) : t("Animal") };
 }
 
 export default async function AnimalPage({ params }: PageProps<"/animals/[id]">) {
@@ -66,7 +67,13 @@ export default async function AnimalPage({ params }: PageProps<"/animals/[id]">)
   return (
     <>
       <PageHeader
-        title={animal.tag_id}
+        title={
+          // Tag and nickname share the heading: same size and color. The nickname is a lighter weight so the official tag still leads.
+          <span className="flex flex-wrap items-baseline gap-x-3">
+            <span>{animal.tag_id}</span>
+            {animal.nickname && <span className="font-normal">“{animal.nickname}”</span>}
+          </span>
+        }
         back={{ href: "/animals", label: "Animals" }}
         subtitle={[animal.gender && titleCase(animal.gender), animal.color && t(animal.color), ageLabel(animal.dob)].filter(Boolean).join(" · ")}
         actions={
@@ -96,6 +103,7 @@ export default async function AnimalPage({ params }: PageProps<"/animals/[id]">)
           <Card>
             <CardHeader title={t("Overview")} icon={faVenusMars} />
             <dl className="grid grid-cols-2 gap-x-4 gap-y-4 p-4 sm:grid-cols-3 sm:p-5">
+              <Field label={t("Nickname")} value={animal.nickname} />
               <Field label={t("Ranch")} value={ranch ? <Link href={`/ranches/${ranch.id}`} className="text-primary hover:underline">{ranch.name}</Link> : null} />
               <Field label={t("Born")} value={fmtDate(animal.dob)} />
               <Field label={t("Age")} value={ageLabel(animal.dob)} />
@@ -199,7 +207,7 @@ export default async function AnimalPage({ params }: PageProps<"/animals/[id]">)
                 <div className="flex flex-wrap gap-1.5">
                   {offspring.map((o) => (
                     <Link key={o.id} href={`/animals/${o.id}`} className="rounded-lg border border-line px-2 py-1 font-mono text-xs transition hover:border-primary hover:text-primary">
-                      {o.tag_id}
+                      {animalLabel(o.tag_id, o.nickname)}
                     </Link>
                   ))}
                 </div>
