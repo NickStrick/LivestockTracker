@@ -49,6 +49,9 @@ import type {
 const DAY = 86_400_000;
 const NOW = MOCK_NOW.getTime();
 
+/** Only animals currently in the herd generate boundary alerts and show up on live maps. */
+const isActiveAnimal = (id: string | null) => !!id && getById(id)?.status === "active";
+
 // ---- animals -------------------------------------------------------------
 
 /** GET /animals */
@@ -81,6 +84,31 @@ export async function getLineage(id: string, depth = 3): Promise<LineageNode | n
   return build(id, depth);
 }
 
+export type StatusChange = { ok: true } | { ok: false; error: "not_found" | "not_active" | "not_sold" };
+
+/**
+ * PATCH /animals/{id} { status } (MOCK). Changes the in-memory example data so the whole app reflects
+ * it; this resets when the server restarts. Replace with a real request when the backend exists.
+ * Only active -> sold and sold -> active (undo) are supported here.
+ */
+export async function setAnimalStatus(id: string, status: "sold" | "active"): Promise<StatusChange> {
+  const a = getById(id);
+  if (!a) return { ok: false, error: "not_found" };
+  if (status === "sold" && a.status !== "active") return { ok: false, error: "not_active" };
+  if (status === "active" && a.status !== "sold") return { ok: false, error: "not_sold" };
+  a.status = status;
+  audit.unshift({
+    id: `aud_s${audit.length}`,
+    animal_id: a.id,
+    ranch_id: a.ranch_id,
+    event_type: "animal_updated",
+    event_data: { status },
+    actor_id: "usr_maria.gomez",
+    occurred_at: MOCK_NOW.toISOString(),
+  });
+  return { ok: true };
+}
+
 export async function listOffspring(id: string): Promise<AnimalOut[]> {
   return animals.filter((a) => a.sire_id === id || a.dam_id === id);
 }
@@ -109,7 +137,7 @@ export async function listWeights(animalId: string): Promise<WeightRecord[]> {
   return weights.filter((w) => w.animal_id === animalId).sort((a, b) => a.weighed_at.localeCompare(b.weighed_at));
 }
 export async function getPosition(animalId: string): Promise<GpsPosition | null> {
-  return positions.find((p) => p.animal_id === animalId) ?? null;
+  return isActiveAnimal(animalId) ? (positions.find((p) => p.animal_id === animalId) ?? null) : null;
 }
 
 // ---- ranches & zones -----------------------------------------------------
@@ -119,7 +147,7 @@ function summarize(r: RanchDetail): RanchSummary {
     ...r,
     head_count: animals.filter((a) => a.ranch_id === r.id && a.status === "active").length,
     zone_count: zones.filter((z) => z.ranch_id === r.id && z.active).length,
-    breach_count: positions.filter((p) => p.ranch_id === r.id && !p.inside_boundary).length,
+    breach_count: positions.filter((p) => p.ranch_id === r.id && !p.inside_boundary && isActiveAnimal(p.animal_id)).length,
     area_acres: ringAcres(r.boundary),
   };
 }
@@ -146,7 +174,7 @@ export async function getRanchAuditTrail(ranchId: string): Promise<AuditEventOut
 }
 
 export async function listRanchPositions(ranchId: string): Promise<GpsPosition[]> {
-  return positions.filter((p) => p.ranch_id === ranchId);
+  return positions.filter((p) => p.ranch_id === ranchId && isActiveAnimal(p.animal_id));
 }
 
 /** animal_id -> display label (tag, plus nickname when set), for linking audit events and map markers to animals. */
@@ -255,7 +283,7 @@ function buildAlerts(): Alert[] {
   const fmt = (iso: string) => new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" });
 
   const breaches: Alert[] = audit
-    .filter((e) => e.event_type === "geofence_breach" && NOW - new Date(e.occurred_at).getTime() <= 7 * DAY)
+    .filter((e) => e.event_type === "geofence_breach" && isActiveAnimal(e.animal_id) && NOW - new Date(e.occurred_at).getTime() <= 7 * DAY)
     .map((e) => ({
       id: e.id,
       kind: "geofence_breach",
@@ -375,7 +403,7 @@ export async function listVaccinationStatus(): Promise<VaccinationRow[]> {
 export async function listBreaches(): Promise<BreachRow[]> {
   const ranchById = new Map(ranches.map((r) => [r.id, r]));
   return audit
-    .filter((e) => e.event_type === "geofence_breach" && NOW - new Date(e.occurred_at).getTime() <= 7 * DAY)
+    .filter((e) => e.event_type === "geofence_breach" && isActiveAnimal(e.animal_id) && NOW - new Date(e.occurred_at).getTime() <= 7 * DAY)
     .map((e): BreachRow => {
       const ranch = ranchById.get(e.ranch_id ?? "")!;
       const d = e.event_data as { lon: number; lat: number };
@@ -400,7 +428,7 @@ export async function listBreaches(): Promise<BreachRow[]> {
 export async function getDashboard(): Promise<DashboardData> {
   const active = animals.filter((a) => a.status === "active");
   const { overdue, dueSoon } = vaccinationStatus();
-  const breaches7d = audit.filter((e) => e.event_type === "geofence_breach" && NOW - new Date(e.occurred_at).getTime() <= 7 * DAY);
+  const breaches7d = audit.filter((e) => e.event_type === "geofence_breach" && isActiveAnimal(e.animal_id) && NOW - new Date(e.occurred_at).getTime() <= 7 * DAY);
 
   // Average weight per month, over the last six months.
   const byMonth = new Map<string, number[]>();

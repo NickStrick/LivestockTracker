@@ -1,5 +1,18 @@
 /** Spanish (Mexico): page-level copy: dashboard, records, compliance, breaches and the landing page. */
 export const ES_PAGES: Record<string, string> = {
+  // mark as sold
+  "Selling this animal? Mark it as sold to take it out of your active herd, alerts and maps.": "¿Vas a vender este animal? Márcalo como vendido para sacarlo de tu hato activo, las alertas y los mapas.",
+  "Mark as sold": "Marcar como vendido",
+  "Mark {animal} as sold?": "¿Marcar {animal} como vendido?",
+  "It leaves your active herd, boundary alerts and live maps. Its records stay available.": "Sale de tu hato activo, de las alertas de perímetro y de los mapas en vivo. Sus registros siguen disponibles.",
+  "Yes, mark as sold": "Sí, marcar como vendido",
+  "Saving…": "Guardando…",
+  "{animal} is now marked as sold.": "{animal} ahora está marcado como vendido.",
+  "Record the sale movement": "Registrar el movimiento de venta",
+  "Updates example data only": "Solo actualiza datos de ejemplo",
+  "Only active animals can be marked as sold.": "Solo se pueden marcar como vendidos los animales activos.",
+  "Something went wrong. Please try again.": "Algo salió mal. Inténtalo de nuevo.",
+
   // printable animal record
   "Print records": "Imprimir expediente",
   "Choose what to include, then print or save as a PDF.": "Elige qué incluir y luego imprime o guarda como PDF.",

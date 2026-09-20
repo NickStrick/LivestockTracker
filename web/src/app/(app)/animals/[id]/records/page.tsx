@@ -4,9 +4,11 @@ import { isLocale } from "@/lib/i18n/config";
 import { getI18n, getLocale, pageTitle } from "@/lib/i18n/server";
 import { RecordsSheet } from "@/components/records/RecordsSheet";
 import { RecordsDocuments } from "@/components/records/RecordsDocuments";
+import { RecordsSale } from "@/components/records/RecordsSale";
 import { RecordsToolbar } from "@/components/records/RecordsToolbar";
 import { isSectionId } from "@/components/records/sections";
 import { PageHeader } from "@/components/ui";
+import { animalLabel } from "@/lib/format";
 
 export const generateMetadata = pageTitle("Print records");
 
@@ -48,11 +50,13 @@ export default async function AnimalRecordsPage({ params, searchParams }: PagePr
           Narrower screens stack: print box, documents, then the preview. */}
       <div className="grid gap-5 xl:grid-cols-[3fr_1fr] xl:items-start print:block">
         <RecordsToolbar lang={lang} skip={skip} className="xl:col-start-1 xl:row-start-1" />
-        <RecordsDocuments
-          animalId={id}
-          documents={documents.map((d) => ({ id: d.id, title: d.title, doc_type: d.doc_type, size_kb: d.size_kb, file_name: d.file_name }))}
-          className="xl:sticky xl:top-24 xl:col-start-2 xl:row-span-2 xl:row-start-1"
-        />
+        <div className="space-y-5 xl:sticky xl:top-24 xl:col-start-2 xl:row-span-2 xl:row-start-1 print:hidden">
+          <RecordsDocuments
+            animalId={id}
+            documents={documents.map((d) => ({ id: d.id, title: d.title, doc_type: d.doc_type, size_kb: d.size_kb, file_name: d.file_name }))}
+          />
+          <RecordsSale animalId={id} status={animal.status} label={animalLabel(animal.tag_id, animal.nickname)} />
+        </div>
         <div className="xl:col-start-1 xl:row-start-2">
           <RecordsSheet
             locale={lang}
