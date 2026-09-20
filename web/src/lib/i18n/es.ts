@@ -5,8 +5,9 @@
  * "[i18n-missing]" warnings.
  */
 import { ES_PAGES } from "./es/pages";
+import { ES_QR } from "./es/qr";
 import { ES_RECORD } from "./es/record";
 import { ES_SYSTEM } from "./es/system";
 import { ES_UI } from "./es/ui";
 
-export const ES: Record<string, string> = { ...ES_UI, ...ES_PAGES, ...ES_SYSTEM, ...ES_RECORD };
+export const ES: Record<string, string> = { ...ES_UI, ...ES_PAGES, ...ES_SYSTEM, ...ES_RECORD, ...ES_QR };

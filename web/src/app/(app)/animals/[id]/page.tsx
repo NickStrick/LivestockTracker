@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import clsx from "clsx";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faClipboardCheck, faPrint, faClockRotateLeft, faDna, faHeartPulse, faSackDollar, faLocationDot, faPen, faSyringe, faVenusMars, faWeightScale } from "@fortawesome/free-solid-svg-icons";
+import { faClipboardCheck, faPrint, faQrcode, faClockRotateLeft, faDna, faHeartPulse, faSackDollar, faLocationDot, faPen, faSyringe, faVenusMars, faWeightScale } from "@fortawesome/free-solid-svg-icons";
 import {
   getAnimal,
   getAnimalAuditTrail,
@@ -92,6 +92,9 @@ export default async function AnimalPage({ params }: PageProps<"/animals/[id]">)
             </Link>
             <Link href={`/animals/${id}/records`} className={btn.ghost}>
               <FontAwesomeIcon icon={faPrint} /> {t("Print records")}
+            </Link>
+            <Link href={`/animals/${id}/qr`} className={btn.ghost}>
+              <FontAwesomeIcon icon={faQrcode} /> {t("QR tag")}
             </Link>
           </>
         }
