@@ -6,8 +6,12 @@ export const ES_PAGES: Record<string, string> = {
   "Document language": "Idioma del documento",
   "Include in the printout": "Incluir en la impresión",
   "Print / Save as PDF": "Imprimir / Guardar como PDF",
-  "To email it, choose “Save as PDF” in the print dialog and attach the file. Attach copies of the original certificates separately.":
-    "Para enviarlo por correo, elige «Guardar como PDF» en el cuadro de impresión y adjunta el archivo. Adjunta por separado las copias de los certificados originales.",
+  "Original documents": "Documentos originales",
+  "No documents on file for this animal.": "Este animal no tiene documentos registrados.",
+  "Download {title}": "Descargar {title}",
+  "Placeholder files until storage is connected": "Archivos de ejemplo hasta conectar el almacenamiento",
+  "To email it, choose “Save as PDF” in the print dialog and attach the file, along with any original documents you download.":
+    "Para enviarlo por correo, elige «Guardar como PDF» en el cuadro de impresión y adjunta el archivo, junto con los documentos originales que descargues.",
   "Animal health and compliance record": "Expediente sanitario y de cumplimiento del animal",
   "Prepared {date}": "Preparado el {date}",
   Identification: "Identificación",

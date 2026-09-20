@@ -3,6 +3,7 @@ import { getAnimal, getAnimalTags, getRanch, listAnimalDocuments, listAnimalMove
 import { isLocale } from "@/lib/i18n/config";
 import { getI18n, getLocale, pageTitle } from "@/lib/i18n/server";
 import { RecordsSheet } from "@/components/records/RecordsSheet";
+import { RecordsDocuments } from "@/components/records/RecordsDocuments";
 import { RecordsToolbar } from "@/components/records/RecordsToolbar";
 import { isSectionId } from "@/components/records/sections";
 import { PageHeader } from "@/components/ui";
@@ -43,23 +44,34 @@ export default async function AnimalRecordsPage({ params, searchParams }: PagePr
       <div className="print:hidden">
         <PageHeader title={ui.t("Print records")} subtitle={ui.t("Choose what to include, then print or save as a PDF.")} back={{ href: `/animals/${id}`, label: animal.tag_id }} />
       </div>
-      <RecordsToolbar lang={lang} skip={skip} />
-      <RecordsSheet
-        locale={lang}
-        skip={skip}
-        animal={animal}
-        ranch={ranch}
-        sire={sire}
-        dam={dam}
-        identifiers={identifiers}
-        vaccinations={vaccinations}
-        observations={observations}
-        breeding={breeding}
-        weights={weights}
-        movements={movements}
-        documents={documents}
-        tagOf={tagOf}
-      />
+      {/* Wide screens: print box + preview in a 3/4 column, documents in a sticky 1/4 column beside them.
+          Narrower screens stack: print box, documents, then the preview. */}
+      <div className="grid gap-5 xl:grid-cols-[3fr_1fr] xl:items-start print:block">
+        <RecordsToolbar lang={lang} skip={skip} className="xl:col-start-1 xl:row-start-1" />
+        <RecordsDocuments
+          animalId={id}
+          documents={documents.map((d) => ({ id: d.id, title: d.title, doc_type: d.doc_type, size_kb: d.size_kb, file_name: d.file_name }))}
+          className="xl:sticky xl:top-24 xl:col-start-2 xl:row-span-2 xl:row-start-1"
+        />
+        <div className="xl:col-start-1 xl:row-start-2">
+          <RecordsSheet
+            locale={lang}
+            skip={skip}
+            animal={animal}
+            ranch={ranch}
+            sire={sire}
+            dam={dam}
+            identifiers={identifiers}
+            vaccinations={vaccinations}
+            observations={observations}
+            breeding={breeding}
+            weights={weights}
+            movements={movements}
+            documents={documents}
+            tagOf={tagOf}
+          />
+        </div>
+      </div>
     </>
   );
 }

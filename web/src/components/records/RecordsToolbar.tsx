@@ -15,7 +15,7 @@ import { RECORD_SECTIONS } from "./sections";
  * Screen-only controls above the printable sheet. Choices live in the URL (?lang=es&skip=weights)
  * so the server renders exactly what will print, and the link can be reopened later.
  */
-export function RecordsToolbar({ lang, skip }: { lang: Locale; skip: string[] }) {
+export function RecordsToolbar({ lang, skip, className }: { lang: Locale; skip: string[]; className?: string }) {
   const { t } = useI18n();
   const router = useRouter();
   const pathname = usePathname();
@@ -30,7 +30,7 @@ export function RecordsToolbar({ lang, skip }: { lang: Locale; skip: string[] })
   const toggle = (id: string) => go({ skip: skip.includes(id) ? skip.filter((s) => s !== id) : [...skip, id] });
 
   return (
-    <Card className={clsx("mb-5 p-4 transition-opacity print:hidden sm:p-5", pending && "opacity-60")}>
+    <Card className={clsx("p-4 transition-opacity print:hidden sm:p-5", pending && "opacity-60", className)}>
       <div className="grid gap-5 lg:grid-cols-[auto_1fr_auto] lg:items-start">
         <div>
           <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-muted">{t("Document language")}</p>
@@ -78,7 +78,7 @@ export function RecordsToolbar({ lang, skip }: { lang: Locale; skip: string[] })
           <FontAwesomeIcon icon={faPrint} /> {t("Print / Save as PDF")}
         </button>
       </div>
-      <p className="mt-4 text-xs leading-relaxed text-muted">{t("To email it, choose “Save as PDF” in the print dialog and attach the file. Attach copies of the original certificates separately.")}</p>
+      <p className="mt-4 text-xs leading-relaxed text-muted">{t("To email it, choose “Save as PDF” in the print dialog and attach the file, along with any original documents you download.")}</p>
     </Card>
   );
 }
