@@ -118,6 +118,11 @@ export const ES_SYSTEM: Record<string, string> = {
   "Calving complications": "Complicaciones en el parto",
 
   // release notes (lib/releases.ts)
+  "Developer reference": "Referencia para desarrolladores",
+  "A page for the people building Estancia's backend, listing everything the app needs from it.": "Una página para quienes construyen el backend de Estancia, con todo lo que la app necesita de él.",
+  "Developers link at the bottom of the sidebar opens a reference of every endpoint and schema the backend needs to provide, with examples and rules.":
+    "El enlace Desarrolladores, al final de la barra lateral, abre una referencia de cada endpoint y esquema que el backend debe ofrecer, con ejemplos y reglas.",
+  "Download a proposed OpenAPI file, or a checklist of what to build.": "Descarga un archivo OpenAPI propuesto, o una lista de verificación de lo que hay que construir.",
   "Animal nicknames": "Apodos para los animales",
   "Give any animal a nickname so it is easy to recognize at a glance.": "Ponle un apodo a cualquier animal para reconocerlo fácilmente de un vistazo.",
   "Add a nickname when you register an animal, or edit it any time.": "Agrega un apodo al registrar un animal, o edítalo cuando quieras.",

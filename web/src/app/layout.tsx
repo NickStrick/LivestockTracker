@@ -39,7 +39,8 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
       </head>
-      <body>
+      {/* Browser extensions (for example ColorZilla) add attributes to <body> before React loads; that is not an app error. */}
+      <body suppressHydrationWarning>
         <I18nProvider locale={locale}>
           <WhatsNewProvider>{children}</WhatsNewProvider>
         </I18nProvider>

@@ -1,0 +1,1550 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "animal-service",
+    "description": "Owns animal records, identifiers, ranches, zones, and the shared audit trail.",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/animals": {
+      "post": {
+        "tags": [
+          "animals"
+        ],
+        "summary": "Create Animal",
+        "description": "Create an animal, logging its creation to the audit trail and outbox\nin the same transaction. 409s if tag_id is already in use.\n\nArgs:\n    body: Fields for the new animal.\n    db: Database session (injected).\n    user: The authenticated caller (injected); its id is recorded as\n        the audit event's actor.\n\nReturns:\n    AnimalOut: The newly created animal.\n\nRaises:\n    HTTPException: 409 if `body.tag_id` is already in use by another\n        animal.",
+        "operationId": "create_animal_animals_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AnimalCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnimalOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "animals"
+        ],
+        "summary": "List Animals",
+        "description": "List animals, newest first, optionally filtered by ranch and/or\nlifecycle status.\n\nArgs:\n    ranch_id: If given, only return animals belonging to this ranch.\n    status_filter: If given, only return animals in this lifecycle\n        status (active|sold|deceased).\n    db: Database session (injected).\n    user: The authenticated caller (injected); unused beyond requiring\n        authentication for this endpoint.\n\nReturns:\n    List[AnimalOut]: Matching animals, newest-created first.",
+        "operationId": "list_animals_animals_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "ranch_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Ranch Id"
+            }
+          },
+          {
+            "name": "status_filter",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status Filter"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AnimalOut"
+                  },
+                  "title": "Response List Animals Animals Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/animals/{animal_id}": {
+      "get": {
+        "tags": [
+          "animals"
+        ],
+        "summary": "Get Animal",
+        "description": "Fetch a single animal by id, or 404 if it doesn't exist.\n\nArgs:\n    animal_id: id of the animal to fetch.\n    db: Database session (injected).\n    user: The authenticated caller (injected); unused beyond requiring\n        authentication for this endpoint.\n\nReturns:\n    AnimalOut: The requested animal.\n\nRaises:\n    HTTPException: 404 if no animal with `animal_id` exists.",
+        "operationId": "get_animal_animals__animal_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "animal_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Animal Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnimalOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "animals"
+        ],
+        "summary": "Update Animal",
+        "description": "Apply a partial update and log it to the audit trail -- a status\nchange gets its own event type/outbox event since that's the\ntransition most consumers care about; any other field change logs as a\ngeneric animal_updated event.\n\nArgs:\n    animal_id: id of the animal to update.\n    body: Fields to change; unset fields are left unchanged.\n    db: Database session (injected).\n    user: The authenticated caller (injected); its id is recorded as\n        the audit event's actor.\n\nReturns:\n    AnimalOut: The updated animal.\n\nRaises:\n    HTTPException: 404 if no animal with `animal_id` exists.",
+        "operationId": "update_animal_animals__animal_id__patch",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "animal_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Animal Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AnimalUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnimalOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/animals/{animal_id}/lineage": {
+      "get": {
+        "tags": [
+          "animals"
+        ],
+        "summary": "Get Lineage",
+        "description": "Return an animal's sire, dam, and offspring (one generation each\ndirection -- not a full pedigree tree).\n\nArgs:\n    animal_id: id of the animal to look up lineage for.\n    db: Database session (injected).\n    user: The authenticated caller (injected); unused beyond requiring\n        authentication for this endpoint.\n\nReturns:\n    dict: `{\"animal_id\", \"sire\", \"dam\", \"offspring\"}`, where sire/dam\n        are an AnimalOut or None, and offspring is a list of AnimalOut.\n\nRaises:\n    HTTPException: 404 if no animal with `animal_id` exists.",
+        "operationId": "get_lineage_animals__animal_id__lineage_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "animal_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Animal Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "title": "Response Get Lineage Animals  Animal Id  Lineage Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/animals/{animal_id}/audit-trail": {
+      "get": {
+        "tags": [
+          "animals"
+        ],
+        "summary": "Get Audit Trail",
+        "description": "List this animal's audit_events, oldest first.\n\nArgs:\n    animal_id: id of the animal whose audit trail to fetch.\n    db: Database session (injected).\n    user: The authenticated caller (injected); unused beyond requiring\n        authentication for this endpoint.\n\nReturns:\n    List[AuditEventOut]: This animal's audit events, oldest first.\n\nRaises:\n    HTTPException: 404 if no animal with `animal_id` exists.",
+        "operationId": "get_audit_trail_animals__animal_id__audit_trail_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "animal_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Animal Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AuditEventOut"
+                  },
+                  "title": "Response Get Audit Trail Animals  Animal Id  Audit Trail Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/animals/{animal_id}/identifiers": {
+      "post": {
+        "tags": [
+          "animals"
+        ],
+        "summary": "Add Identifier",
+        "description": "Attach an RFID/EID/tattoo/muzzle-print identifier to an animal.\nRestricted to admin/vet/field_worker roles; 409s if the identifier\nvalue is already attached to another animal (see Identifier's unique\nconstraint in app/models.py).\n\nArgs:\n    animal_id: id of the animal to attach the identifier to.\n    body: The identifier's type/value/issuer.\n    db: Database session (injected).\n    user: The authenticated caller (injected), restricted to the\n        admin/vet/field_worker roles; its id is recorded as the audit\n        event's actor.\n\nReturns:\n    IdentifierOut: The newly created identifier.\n\nRaises:\n    HTTPException: 404 if no animal with `animal_id` exists; 403 if\n        `user`'s role isn't admin/vet/field_worker; 409 if\n        `body.value` is already attached to another animal.",
+        "operationId": "add_identifier_animals__animal_id__identifiers_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "animal_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Animal Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IdentifierCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IdentifierOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ranches": {
+      "get": {
+        "tags": [
+          "ranches"
+        ],
+        "summary": "List Ranches",
+        "description": "List all ranches, newest first.\n\nArgs:\n    db: Database session (injected).\n    user: The authenticated caller (injected); unused beyond requiring\n        authentication for this endpoint.\n\nReturns:\n    List[RanchOut]: All ranches, newest-created first.",
+        "operationId": "list_ranches_ranches_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/RanchOut"
+                  },
+                  "type": "array",
+                  "title": "Response List Ranches Ranches Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "ranches"
+        ],
+        "summary": "Create Ranch",
+        "description": "Onboard a ranch: validate its boundary as a well-formed, non-\nself-intersecting polygon and store it as PostGIS geography.\n\nArgs:\n    body: Name, owning customer, and boundary ring for the new ranch.\n    db: Database session (injected).\n    user: The authenticated caller (injected); unused beyond requiring\n        authentication for this endpoint.\n\nReturns:\n    RanchOut: The newly created ranch.\n\nRaises:\n    HTTPException: 422 if `body.boundary` forms a self-intersecting or\n        otherwise invalid polygon.",
+        "operationId": "create_ranch_ranches_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RanchCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RanchOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/ranches/{ranch_id}": {
+      "get": {
+        "tags": [
+          "ranches"
+        ],
+        "summary": "Get Ranch",
+        "description": "Fetch a single ranch by id, or 404 if it doesn't exist.\n\nArgs:\n    ranch_id: id of the ranch to fetch.\n    db: Database session (injected).\n    user: The authenticated caller (injected); unused beyond requiring\n        authentication for this endpoint.\n\nReturns:\n    RanchOut: The requested ranch.\n\nRaises:\n    HTTPException: 404 if no ranch with `ranch_id` exists.",
+        "operationId": "get_ranch_ranches__ranch_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "ranch_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Ranch Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RanchOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ranches/{ranch_id}/audit-trail": {
+      "get": {
+        "tags": [
+          "ranches"
+        ],
+        "summary": "Get Ranch Audit Trail",
+        "description": "List this ranch's audit_events (ranch- and zone-scoped), oldest first.\n\nArgs:\n    ranch_id: id of the ranch whose audit trail to fetch.\n    db: Database session (injected).\n    user: The authenticated caller (injected); unused beyond requiring\n        authentication for this endpoint.\n\nReturns:\n    List[AuditEventOut]: This ranch's audit events, oldest first.\n\nRaises:\n    HTTPException: 404 if no ranch with `ranch_id` exists.",
+        "operationId": "get_ranch_audit_trail_ranches__ranch_id__audit_trail_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "ranch_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Ranch Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AuditEventOut"
+                  },
+                  "title": "Response Get Ranch Audit Trail Ranches  Ranch Id  Audit Trail Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ranches/{ranch_id}/zones": {
+      "post": {
+        "tags": [
+          "zones"
+        ],
+        "summary": "Create Zone",
+        "description": "Create a zone: validate its boundary polygon, require it lie fully\nwithin the parent ranch's boundary, then log the creation to the audit\ntrail and outbox in the same transaction.\n\nArgs:\n    ranch_id: id of the parent ranch this zone belongs to.\n    body: Name, type, description, and boundary ring for the new zone.\n    db: Database session (injected).\n    user: The authenticated caller (injected); its id is recorded as\n        the audit event's actor.\n\nReturns:\n    ZoneOut: The newly created zone.\n\nRaises:\n    HTTPException: 404 if no ranch with `ranch_id` exists; 422 if\n        `body.boundary` is an invalid polygon or doesn't lie fully\n        within the parent ranch's boundary.",
+        "operationId": "create_zone_ranches__ranch_id__zones_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "ranch_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Ranch Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ZoneCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ZoneOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "zones"
+        ],
+        "summary": "List Zones",
+        "description": "List zones in a ranch, newest first, optionally filtered by type.\n\nArgs:\n    ranch_id: id of the parent ranch.\n    zone_type: If given, only return zones of this type\n        (pasture|water|dangerous_terrain|forest|paddock|quarantine).\n    db: Database session (injected).\n    user: The authenticated caller (injected); unused beyond requiring\n        authentication for this endpoint.\n\nReturns:\n    List[ZoneOut]: Matching zones, newest-created first.\n\nRaises:\n    HTTPException: 404 if no ranch with `ranch_id` exists.",
+        "operationId": "list_zones_ranches__ranch_id__zones_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "ranch_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Ranch Id"
+            }
+          },
+          {
+            "name": "zone_type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Zone Type"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ZoneOut"
+                  },
+                  "title": "Response List Zones Ranches  Ranch Id  Zones Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ranches/{ranch_id}/zones/{zone_id}": {
+      "get": {
+        "tags": [
+          "zones"
+        ],
+        "summary": "Get Zone",
+        "description": "Fetch a single zone by id, or 404 if it or its parent ranch don't exist.\n\nArgs:\n    ranch_id: id of the zone's expected parent ranch.\n    zone_id: id of the zone to fetch.\n    db: Database session (injected).\n    user: The authenticated caller (injected); unused beyond requiring\n        authentication for this endpoint.\n\nReturns:\n    ZoneOut: The requested zone.\n\nRaises:\n    HTTPException: 404 if no ranch with `ranch_id` exists, or no zone\n        with `zone_id` exists under it.",
+        "operationId": "get_zone_ranches__ranch_id__zones__zone_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "ranch_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Ranch Id"
+            }
+          },
+          {
+            "name": "zone_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Zone Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ZoneOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "zones"
+        ],
+        "summary": "Update Zone",
+        "description": "Apply a partial update and log it to the audit trail -- deactivating\na zone (e.g. lifting a quarantine) stamps lifted_at and gets its own\nzone_lifted event/outbox entry; any other change logs as a generic\nzone_updated event, mirroring the animals router's status_change\nhandling.\n\nArgs:\n    ranch_id: id of the zone's expected parent ranch.\n    zone_id: id of the zone to update.\n    body: Fields to change; unset fields are left unchanged.\n    db: Database session (injected).\n    user: The authenticated caller (injected); its id is recorded as\n        the audit event's actor.\n\nReturns:\n    ZoneOut: The updated zone.\n\nRaises:\n    HTTPException: 404 if no ranch with `ranch_id` exists, or no zone\n        with `zone_id` exists under it.",
+        "operationId": "update_zone_ranches__ranch_id__zones__zone_id__patch",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "ranch_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Ranch Id"
+            }
+          },
+          {
+            "name": "zone_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Zone Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ZoneUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ZoneOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/healthz": {
+      "get": {
+        "tags": [
+          "ops"
+        ],
+        "summary": "Healthz",
+        "description": "Kubernetes liveness/readiness probe target.\n\nReturns:\n    dict: `{\"status\": \"ok\"}` -- a 200 response is the only signal\n        probed; the body's content is not otherwise interpreted.",
+        "operationId": "healthz_healthz_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AnimalCreate": {
+        "properties": {
+          "tag_id": {
+            "type": "string",
+            "title": "Tag Id"
+          },
+          "dob": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dob"
+          },
+          "color": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Color"
+          },
+          "gender": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Gender"
+          },
+          "sire_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sire Id"
+          },
+          "dam_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dam Id"
+          },
+          "ranch_id": {
+            "type": "string",
+            "title": "Ranch Id"
+          },
+          "registry_number": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Registry Number"
+          },
+          "breed_association": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Breed Association"
+          }
+        },
+        "type": "object",
+        "required": [
+          "tag_id",
+          "ranch_id"
+        ],
+        "title": "AnimalCreate",
+        "description": "Request body for creating an animal."
+      },
+      "AnimalOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "tag_id": {
+            "type": "string",
+            "title": "Tag Id"
+          },
+          "dob": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dob"
+          },
+          "color": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Color"
+          },
+          "gender": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Gender"
+          },
+          "sire_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sire Id"
+          },
+          "dam_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dam Id"
+          },
+          "ranch_id": {
+            "type": "string",
+            "title": "Ranch Id"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "cause_of_death": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cause Of Death"
+          },
+          "registry_number": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Registry Number"
+          },
+          "breed_association": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Breed Association"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "tag_id",
+          "dob",
+          "color",
+          "gender",
+          "sire_id",
+          "dam_id",
+          "ranch_id",
+          "status",
+          "cause_of_death",
+          "registry_number",
+          "breed_association",
+          "created_at"
+        ],
+        "title": "AnimalOut",
+        "description": "Animal as returned to API clients."
+      },
+      "AnimalUpdate": {
+        "properties": {
+          "color": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Color"
+          },
+          "gender": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Gender"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^(active|sold|deceased)$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status"
+          },
+          "cause_of_death": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cause Of Death"
+          },
+          "registry_number": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Registry Number"
+          }
+        },
+        "type": "object",
+        "title": "AnimalUpdate",
+        "description": "Request body for a partial animal update -- unset fields are left\nunchanged (see the router's `exclude_unset=True`)."
+      },
+      "AuditEventOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "animal_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Animal Id"
+          },
+          "ranch_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ranch Id"
+          },
+          "event_type": {
+            "type": "string",
+            "title": "Event Type"
+          },
+          "event_data": {
+            "anyOf": [
+              {
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Event Data"
+          },
+          "actor_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Actor Id"
+          },
+          "occurred_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Occurred At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "animal_id",
+          "ranch_id",
+          "event_type",
+          "event_data",
+          "actor_id",
+          "occurred_at"
+        ],
+        "title": "AuditEventOut",
+        "description": "Audit trail event as returned to API clients."
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "IdentifierCreate": {
+        "properties": {
+          "id_type": {
+            "type": "string",
+            "pattern": "^(RFID|EID|ear_tattoo|muzzle_print)$",
+            "title": "Id Type"
+          },
+          "value": {
+            "type": "string",
+            "title": "Value"
+          },
+          "issued_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Issued By"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id_type",
+          "value"
+        ],
+        "title": "IdentifierCreate",
+        "description": "Request body for attaching an identifier to an animal."
+      },
+      "IdentifierOut": {
+        "properties": {
+          "id_type": {
+            "type": "string",
+            "pattern": "^(RFID|EID|ear_tattoo|muzzle_print)$",
+            "title": "Id Type"
+          },
+          "value": {
+            "type": "string",
+            "title": "Value"
+          },
+          "issued_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Issued By"
+          },
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "animal_id": {
+            "type": "string",
+            "title": "Animal Id"
+          },
+          "issued_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Issued At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id_type",
+          "value",
+          "id",
+          "animal_id",
+          "issued_at"
+        ],
+        "title": "IdentifierOut",
+        "description": "Identifier as returned to API clients."
+      },
+      "RanchCreate": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "customer_id": {
+            "type": "string",
+            "title": "Customer Id"
+          },
+          "boundary": {
+            "items": {
+              "items": {
+                "type": "number"
+              },
+              "type": "array"
+            },
+            "type": "array",
+            "title": "Boundary",
+            "description": "Polygon ring as [[lon, lat], [lon, lat], ...], first == last point"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "customer_id",
+          "boundary"
+        ],
+        "title": "RanchCreate",
+        "description": "Request body for onboarding a ranch."
+      },
+      "RanchOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "customer_id": {
+            "type": "string",
+            "title": "Customer Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "customer_id",
+          "name",
+          "created_at"
+        ],
+        "title": "RanchOut",
+        "description": "Ranch as returned to API clients."
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      },
+      "ZoneCreate": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "zone_type": {
+            "type": "string",
+            "pattern": "^(pasture|water|dangerous_terrain|forest|paddock|quarantine)$",
+            "title": "Zone Type"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "boundary": {
+            "items": {
+              "items": {
+                "type": "number"
+              },
+              "type": "array"
+            },
+            "type": "array",
+            "title": "Boundary",
+            "description": "Polygon ring as [[lon, lat], [lon, lat], ...], first == last point"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "zone_type",
+          "boundary"
+        ],
+        "title": "ZoneCreate",
+        "description": "Request body for creating a zone within a ranch."
+      },
+      "ZoneOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "ranch_id": {
+            "type": "string",
+            "title": "Ranch Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "zone_type": {
+            "type": "string",
+            "title": "Zone Type"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "boundary": {
+            "type": "object",
+            "title": "Boundary"
+          },
+          "active": {
+            "type": "boolean",
+            "title": "Active"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "lifted_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lifted At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "ranch_id",
+          "name",
+          "zone_type",
+          "description",
+          "boundary",
+          "active",
+          "created_at",
+          "lifted_at"
+        ],
+        "title": "ZoneOut",
+        "description": "Zone as returned to API clients, with `boundary` normalized to a\nGeoJSON geometry dict (see boundary_to_geojson below)."
+      },
+      "ZoneUpdate": {
+        "properties": {
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "active": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Active"
+          }
+        },
+        "type": "object",
+        "title": "ZoneUpdate",
+        "description": "Request body for a partial zone update -- unset fields are left\nunchanged (see the router's `exclude_unset=True`)."
+      }
+    },
+    "securitySchemes": {
+      "HTTPBearer": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    }
+  }
+}

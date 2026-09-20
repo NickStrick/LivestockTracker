@@ -13,5 +13,7 @@ export const ES_QR: Record<string, string> = {
   "Scanning opens:": "Al escanear se abre:",
   "This address only works on this computer or network. Open Estancia from its real web address before printing codes for tags, or a phone in the field won't be able to open them.":
     "Esta dirección solo funciona en esta computadora o red. Abre Estancia desde su dirección web real antes de imprimir códigos para los aretes, o un teléfono en el campo no podrá abrirlos.",
+  Developers: "Desarrolladores",
+  "For developers": "Para desarrolladores",
   "QR code for {animal}": "Código QR de {animal}",
 };

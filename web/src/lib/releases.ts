@@ -11,6 +11,16 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: "0.7.1",
+    date: "2026-09-20",
+    title: "Developer reference",
+    summary: "A page for the people building Estancia's backend, listing everything the app needs from it.",
+    items: [
+      { type: "new", text: "Developers link at the bottom of the sidebar opens a reference of every endpoint and schema the backend needs to provide, with examples and rules." },
+      { type: "new", text: "Download a proposed OpenAPI file, or a checklist of what to build." },
+    ],
+  },
+  {
     version: "0.7.0",
     date: "2026-09-20",
     title: "Animal nicknames",

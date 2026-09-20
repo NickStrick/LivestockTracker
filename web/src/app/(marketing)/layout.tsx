@@ -38,7 +38,10 @@ export default async function MarketingLayout({ children }: LayoutProps<"/">) {
       <footer className="border-t border-line">
         <div className="mx-auto flex max-w-6xl flex-col items-start justify-between gap-4 px-4 py-8 pb-[max(2rem,env(safe-area-inset-bottom))] text-sm text-muted sm:flex-row sm:items-center sm:px-6">
           <p>{t("Estancia v{version} · Livestock management for working ranches", { version: LATEST_RELEASE.version })}</p>
-          <p className="text-xs">{t("Demo build running on sample data.")}</p>
+          <p className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
+            <span>{t("Demo build running on sample data.")}</span>
+            <Link href="/developers" className="font-medium underline-offset-2 hover:text-fg hover:underline">{t("For developers")}</Link>
+          </p>
         </div>
       </footer>
     </div>

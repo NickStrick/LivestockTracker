@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
 import clsx from "clsx";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faChartPie, faClipboardCheck, faClockRotateLeft, faCow, faMap } from "@fortawesome/free-solid-svg-icons";
+import { faChartPie, faClipboardCheck, faClockRotateLeft, faCode, faCow, faMap } from "@fortawesome/free-solid-svg-icons";
 import { NotificationsBell } from "@/components/alerts/NotificationsBell";
 import { WhatsNewButton } from "@/components/whatsnew/WhatsNewButton";
 import { AnnouncementBanner } from "./AnnouncementBanner";
@@ -20,6 +20,9 @@ const NAV = [
   { href: "/compliance", label: "Compliance", icon: faClipboardCheck },
   { href: "/activity", label: "Activity", icon: faClockRotateLeft },
 ];
+
+// The developer reference link is a small, quiet extra. Set NEXT_PUBLIC_SHOW_DEV_LINK=0 to hide it (for example for real customers).
+const SHOW_DEV_LINK = process.env.NEXT_PUBLIC_SHOW_DEV_LINK !== "0";
 
 // Drill-down pages belong to the dashboard section, so keep its nav item lit on them.
 const SECTION: Record<string, string[]> = { "/dashboard": ["/dashboard", "/vaccinations", "/breaches", "/alerts"] };
@@ -79,6 +82,16 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             );
           })}
         </nav>
+        {SHOW_DEV_LINK && (
+          <Link
+            href="/developers"
+            title={t("Developers")}
+            className="mx-3 mb-2 flex h-9 items-center justify-center gap-2.5 rounded-lg px-3 text-xs text-muted/80 transition-colors hover:bg-surface2 hover:text-fg lg:justify-start"
+          >
+            <FontAwesomeIcon icon={faCode} className="w-5 text-sm" />
+            <span className="hidden lg:inline">{t("Developers")}</span>
+          </Link>
+        )}
         <div className="flex flex-col items-center gap-3 border-t border-line p-3 lg:flex-row lg:justify-between lg:px-5">
           <div className="hidden min-w-0 lg:block">
             <p className="truncate text-sm font-medium">{t("Bartlett Cattle Co.")}</p>

@@ -46,3 +46,7 @@ NEXT_PUBLIC_I18N_DEBUG=1 npm run build && npm start
 ## Not covered yet
 
 Units are still imperial (lb, acres). Mexico normally uses kg and hectares, which needs a separate units setting.
+
+## Developer link
+
+The sidebar shows a small "Developers" link to `/developers` (English-only page for backend developers). Set `NEXT_PUBLIC_SHOW_DEV_LINK=0` at build time to hide it.
