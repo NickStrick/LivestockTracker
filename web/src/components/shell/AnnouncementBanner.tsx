@@ -84,7 +84,7 @@ export function AnnouncementBanner() {
   return (
     <AnimatePresence initial={false}>
       {show && (
-        <motion.div key={show.key} initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden" role="status">
+        <motion.div key={show.key} initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden print:hidden" role="status">
           <div className={clsx("flex items-center gap-3 px-4 py-2.5 text-sm md:px-8", show.tone === "critical" ? "bg-danger text-white" : "bg-primary text-primary-fg")}>
             <FontAwesomeIcon icon={show.icon} className="shrink-0" />
             <p className="min-w-0 flex-1 text-[13px] leading-snug">{show.text}</p>

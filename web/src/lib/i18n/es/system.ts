@@ -118,6 +118,12 @@ export const ES_SYSTEM: Record<string, string> = {
   "Calving complications": "Complicaciones en el parto",
 
   // release notes (lib/releases.ts)
+  "Printable animal records": "Expedientes de animales para imprimir",
+  "Print or save a complete health and compliance record for any animal, ready to hand to a buyer or attach to an email.":
+    "Imprime o guarda un expediente sanitario y de cumplimiento completo de cualquier animal, listo para entregar a un comprador o adjuntar a un correo.",
+  "Print records button on every animal page: vaccinations, health notes, breeding, weights, movements and documents on one clean sheet.":
+    "Botón para imprimir el expediente en cada página de animal: vacunas, notas de salud, reproducción, pesos, movimientos y documentos en una sola hoja limpia.",
+  "Choose the sheet's language (English or Spanish) and which sections to include.": "Elige el idioma de la hoja (inglés o español) y qué secciones incluir.",
   "Spanish and English": "Español e inglés",
   "Use Estancia in English or Spanish, and switch any time from the top bar.": "Usa Estancia en español o en inglés, y cambia cuando quieras desde la barra superior.",
   "Every screen is available in Spanish (Mexico), with an EN | ES switch in the top bar.": "Todas las pantallas están disponibles en español (México), con un selector EN | ES en la barra superior.",

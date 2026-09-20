@@ -112,3 +112,18 @@ body {
   line-height: 40px;
   font-size: 18px;
 }
+
+/* Printing: no browser-added margins beyond these, exact colors for the record sheet, plain white page. */
+@media print {
+  @page {
+    margin: 14mm;
+  }
+  html,
+  body {
+    background: #fff !important;
+  }
+  * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}

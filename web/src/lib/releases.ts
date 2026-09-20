@@ -11,6 +11,16 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: "0.6.0",
+    date: "2026-09-20",
+    title: "Printable animal records",
+    summary: "Print or save a complete health and compliance record for any animal, ready to hand to a buyer or attach to an email.",
+    items: [
+      { type: "new", text: "Print records button on every animal page: vaccinations, health notes, breeding, weights, movements and documents on one clean sheet." },
+      { type: "improved", text: "Choose the sheet's language (English or Spanish) and which sections to include." },
+    ],
+  },
+  {
     version: "0.5.0",
     date: "2026-09-19",
     title: "Spanish and English",

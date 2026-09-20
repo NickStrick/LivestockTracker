@@ -42,9 +42,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const path = usePathname();
 
   return (
-    <div className="min-h-dvh md:pl-[4.5rem] lg:pl-64">
+    <div className="min-h-dvh md:pl-[4.5rem] lg:pl-64 print:pl-0">
       {/* Sidebar: icon rail on tablet, full on desktop */}
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-[4.5rem] flex-col border-r border-line bg-surface md:flex lg:w-64">
+      <aside className="fixed inset-y-0 left-0 z-30 hidden print:hidden w-[4.5rem] flex-col border-r border-line bg-surface md:flex lg:w-64">
         <div className="flex h-16 items-center justify-center px-4 lg:justify-start">
           <span className="lg:hidden">
             <Logo compact />
@@ -91,7 +91,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <AnnouncementBanner />
 
       {/* Top bar: brand on mobile, plus what's new, notifications and (on mobile) the theme toggle */}
-      <header className="sticky top-0 z-20 flex h-14 items-center justify-between border-b border-line bg-canvas/85 px-4 backdrop-blur md:h-16 md:px-8">
+      <header className="sticky top-0 z-20 print:hidden flex h-14 items-center justify-between border-b border-line bg-canvas/85 px-4 backdrop-blur md:h-16 md:px-8">
         <div className="md:hidden">
           <Logo />
         </div>
@@ -106,11 +106,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-7xl px-4 pb-28 pt-5 sm:px-6 md:px-8 md:pb-12 md:pt-8">{children}</main>
+      <main className="mx-auto w-full max-w-7xl px-4 pb-28 pt-5 sm:px-6 md:px-8 md:pb-12 md:pt-8 print:max-w-none print:p-0">{children}</main>
 
       {/* Bottom tab bar (mobile only) */}
       <nav
-        className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden"
+        className="fixed inset-x-0 bottom-0 z-30 print:hidden border-t border-line bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden"
         aria-label={t("Primary")}
       >
         <ul className="mx-auto grid max-w-lg grid-cols-5">
