@@ -32,7 +32,7 @@ function Logo({ compact }: { compact?: boolean }) {
       <span className="grid size-9 place-items-center rounded-xl bg-primary text-primary-fg">
         <FontAwesomeIcon icon={faCow} />
       </span>
-      {!compact && <span className="text-lg font-semibold tracking-tight max-[380px]:hidden">{t("Estancia")}</span>}
+      {!compact && <span className="text-lg font-semibold tracking-tight max-[430px]:hidden">{t("Estancia")}</span>}
     </Link>
   );
 }

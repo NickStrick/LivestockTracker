@@ -2,7 +2,7 @@
 
 No routes or URLs change. The language lives in a `locale` cookie; on the first visit it follows the
 browser's `Accept-Language` (any Spanish -> `es`). The EN | ES switch in the top bar sets the cookie and
-refreshes the page in place.
+refreshes the page in place. The button shows the *other* language by its own name ("Español" / "English") so speakers can find it without reading the current language.
 
 ## Using it
 
@@ -41,7 +41,7 @@ NEXT_PUBLIC_I18N_DEBUG=1 npm run build && npm start
 
 1. Add it to `LOCALES`, `INTL_LOCALE` and `LOCALE_NAME` in `config.ts`.
 2. Create its dictionary and load it in `create.ts` (mirror how `ES` is used).
-3. The switch in `components/shell/LanguageToggle.tsx` renders one button per locale automatically.
+3. `components/shell/LanguageToggle.tsx` is a single button that flips between two languages, showing the other one by its own name. With three or more languages, turn it into a small menu.
 
 ## Not covered yet
 

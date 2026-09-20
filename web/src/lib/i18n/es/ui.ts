@@ -17,6 +17,7 @@ export const ES_UI: Record<string, string> = {
   "What's new": "Novedades",
   "What's new (new release)": "Novedades (versión nueva)",
   Language: "Idioma",
+  "Switch language to {language}": "Cambiar idioma a {language}",
   Primary: "Principal",
   Sections: "Secciones",
   Features: "Funciones",
