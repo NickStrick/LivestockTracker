@@ -1,9 +1,11 @@
 import Link from "next/link";
 import clsx from "clsx";
 import type { LineageNode } from "@/lib/types";
-import { fmtDate, titleCase } from "@/lib/format";
 
-function Node({ node, role }: { node: LineageNode | null; role: "Sire" | "Dam" }) {
+import { getI18n } from "@/lib/i18n/server";
+
+async function Node({ node, role }: { node: LineageNode | null; role: "Sire" | "Dam" }) {
+  const { t, fmtDate, titleCase } = await getI18n();
   const male = role === "Sire";
   return (
     <div className="min-w-0">
@@ -19,7 +21,7 @@ function Node({ node, role }: { node: LineageNode | null; role: "Sire" | "Dam" }
       ) : (
         <div className="rounded-xl border border-dashed border-line px-3 py-2">
           <p className="text-[10px] font-medium uppercase tracking-wide text-muted">{role}</p>
-          <p className="text-sm text-muted">Unknown</p>
+          <p className="text-sm text-muted">{t("Unknown")}</p>
         </div>
       )}
       {node && (node.sire || node.dam) && (

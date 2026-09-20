@@ -3,6 +3,7 @@
 import { useEffect, useSyncExternalStore } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCircleHalfStroke, faMoon, faSun } from "@fortawesome/free-solid-svg-icons";
+import { useI18n } from "@/lib/i18n/client";
 
 type Pref = "system" | "light" | "dark";
 const ORDER: Pref[] = ["system", "light", "dark"];
@@ -32,6 +33,7 @@ function apply(pref: Pref) {
 }
 
 export function ThemeToggle({ className }: { className?: string }) {
+  const { t } = useI18n();
   const pref = useSyncExternalStore(subscribe, readPref, () => "system" as Pref);
 
   // Follow OS changes while the preference is "system".
@@ -56,8 +58,8 @@ export function ThemeToggle({ className }: { className?: string }) {
   return (
     <button
       onClick={next}
-      aria-label={`Theme: ${pref}. Click to change.`}
-      title={`Theme: ${pref}`}
+      aria-label={t("Theme: {mode}. Click to change.", { mode: t(pref) })}
+      title={t("Theme: {mode}", { mode: t(pref) })}
       className={className ?? "grid size-10 place-items-center rounded-xl border border-line bg-surface text-muted transition hover:text-fg active:scale-95"}
     >
       <FontAwesomeIcon icon={ICON[pref]} />

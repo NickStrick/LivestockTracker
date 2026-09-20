@@ -3,13 +3,15 @@
 import { useMemo, useState } from "react";
 import clsx from "clsx";
 import type { AuditEventOut } from "@/lib/types";
-import { eventLabel } from "@/lib/format";
+
 import { AuditTimeline } from "@/components/AuditTimeline";
 import { Card } from "@/components/ui";
+import { useI18n } from "@/lib/i18n/client";
 
 const PAGE = 25;
 
 export function ActivityFeed({ events, tags }: { events: AuditEventOut[]; tags: Record<string, string> }) {
+  const { t, eventLabel } = useI18n();
   const [type, setType] = useState("all");
   const [shown, setShown] = useState(PAGE);
 
@@ -25,16 +27,16 @@ export function ActivityFeed({ events, tags }: { events: AuditEventOut[]; tags: 
     <div className="space-y-4">
       <div className="scroll-x -mx-4 px-4 sm:mx-0 sm:px-0">
         <div className="flex w-max gap-2 py-2">
-          {[["all", events.length] as const, ...types].map(([t, n]) => (
+          {[["all", events.length] as const, ...types].map(([tk, n]) => (
             <button
-              key={t}
+              key={tk}
               onClick={() => {
-                setType(t);
+                setType(tk);
                 setShown(PAGE);
               }}
-              className={clsx("rounded-full border px-3.5 py-1.5 text-sm font-medium transition-colors", type === t ? "border-primary bg-primary text-primary-fg" : "border-line bg-surface text-muted hover:text-fg")}
+              className={clsx("rounded-full border px-3.5 py-1.5 text-sm font-medium transition-colors", type === tk ? "border-primary bg-primary text-primary-fg" : "border-line bg-surface text-muted hover:text-fg")}
             >
-              {t === "all" ? "All" : eventLabel(t)} <span className="opacity-70">{n}</span>
+              {tk === "all" ? t("All") : eventLabel(tk)} <span className="opacity-70">{n}</span>
             </button>
           ))}
         </div>
@@ -44,7 +46,7 @@ export function ActivityFeed({ events, tags }: { events: AuditEventOut[]; tags: 
         {rows.length > shown && (
           <div className="border-t border-line p-3 text-center">
             <button onClick={() => setShown((s) => s + PAGE)} className="rounded-lg px-4 py-2 text-sm font-medium text-primary hover:bg-surface2">
-              Show more ({rows.length - shown} remaining)
+              {t("Show more ({n} remaining)", { n: rows.length - shown })}
             </button>
           </div>
         )}

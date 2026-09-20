@@ -3,11 +3,13 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { z } from "zod";
-import { DOC_TYPE_FULL, fmtSize } from "@/lib/format";
+import { DOC_TYPE_FULL } from "@/lib/format";
 import { DOC_TYPES, type AnimalOut, type DocType, type DocumentCreate, type MovementView } from "@/lib/types";
-import { Card, btn } from "@/components/ui";
+import { Card } from "@/components/ui";
+import { btn } from "@/components/ui-styles";
 import { RequestPreview } from "@/components/RequestPreview";
 import { AnimalPicker } from "./AnimalPicker";
+import { useI18n } from "@/lib/i18n/client";
 
 const INPUT = "h-11 w-full rounded-xl border border-line bg-surface px-3 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20";
 const MAX_KB = 10 * 1024;
@@ -31,11 +33,12 @@ const schema = z
   .refine((v) => v.doc_type !== "cvi" || v.animal_ids.length > 0, { path: ["animal_ids"], message: "A CVI must list the animals it covers" });
 
 function Row({ label, error, hint, children }: { label: string; error?: string; hint?: string; children: React.ReactNode }) {
+  const { t } = useI18n();
   return (
     <label className="block">
       <span className="mb-1.5 block text-sm font-medium">{label}</span>
       {children}
-      {error ? <span className="mt-1 block text-xs text-danger">{error}</span> : hint ? <span className="mt-1 block text-xs text-muted">{hint}</span> : null}
+      {error ? <span className="mt-1 block text-xs text-danger">{t(error)}</span> : hint ? <span className="mt-1 block text-xs text-muted">{t(hint)}</span> : null}
     </label>
   );
 }
@@ -53,6 +56,7 @@ export function DocumentForm({
   initialMovement?: string;
   initialAnimal?: string;
 }) {
+  const { t, fmtSize } = useI18n();
   const startMove = movements.find((m) => m.id === initialMovement);
   const startAnimal = animals.find((a) => a.id === initialAnimal);
   const [ranch, setRanch] = useState(startMove?.ranch_id ?? startAnimal?.ranch_id ?? ranches[0]?.id ?? "");
@@ -102,16 +106,16 @@ export function DocumentForm({
     <form onSubmit={onSubmit} noValidate className="grid gap-4 lg:grid-cols-[1fr_22rem] lg:items-start">
       <Card className="space-y-5 p-4 sm:p-6">
         <div className="grid gap-4 sm:grid-cols-2">
-          <Row label="Document type *">
+          <Row label={t("Document type *")}>
             <select value={type} onChange={(e) => setType(e.target.value as DocType)} className={INPUT}>
-              {DOC_TYPES.map((t) => (
-                <option key={t} value={t}>
-                  {DOC_TYPE_FULL[t]}
+              {DOC_TYPES.map((tk) => (
+                <option key={tk} value={tk}>
+                  {t(DOC_TYPE_FULL[tk])}
                 </option>
               ))}
             </select>
           </Row>
-          <Row label="Ranch *">
+          <Row label={t("Ranch *")}>
             <select
               value={ranch}
               onChange={(e) => {
@@ -129,24 +133,24 @@ export function DocumentForm({
             </select>
           </Row>
         </div>
-        <Row label="Title *" error={errors.title}>
-          <input name="title" className={INPUT} placeholder={type === "cvi" ? "CVI TX-1042" : "Brucellosis test, RS-104"} />
+        <Row label={t("Title *")} error={errors.title}>
+          <input name="title" className={INPUT} placeholder={type === "cvi" ? t("CVI TX-1042") : t("Brucellosis test, RS-104")} />
         </Row>
         <div className="grid gap-4 sm:grid-cols-3">
-          <Row label="Issued *" error={errors.issued_at}>
+          <Row label={t("Issued *")} error={errors.issued_at}>
             <input name="issued_at" type="date" className={INPUT} />
           </Row>
-          <Row label={EXPIRES.includes(type) ? "Expires *" : "Expires"} error={errors.expires_at} hint={type === "cvi" ? "CVIs are usually valid for 30 days" : undefined}>
+          <Row label={EXPIRES.includes(type) ? t("Expires *") : t("Expires")} error={errors.expires_at} hint={type === "cvi" ? "CVIs are usually valid for 30 days" : undefined}>
             <input name="expires_at" type="date" className={INPUT} />
           </Row>
-          <Row label="Issued by *" error={errors.issued_by}>
-            <input name="issued_by" className={INPUT} placeholder="Dr. Ortiz" />
+          <Row label={t("Issued by *")} error={errors.issued_by}>
+            <input name="issued_by" className={INPUT} placeholder={t("Dr. Ortiz")} />
           </Row>
         </div>
 
-        <Row label="Linked movement" >
+        <Row label={t("Linked movement")} >
           <select value={movementId} onChange={(e) => setMovementId(e.target.value)} className={INPUT}>
-            <option value="">None</option>
+            <option value="">{t("None")}</option>
             {ranchMoves.map((m) => (
               <option key={m.id} value={m.id}>
                 {m.origin.split(",")[0]} → {m.destination.split(",")[0]}
@@ -156,11 +160,11 @@ export function DocumentForm({
         </Row>
 
         <div>
-          <span className="mb-1.5 block text-sm font-medium">{type === "cvi" ? "Animals covered *" : "Animals covered"}</span>
+          <span className="mb-1.5 block text-sm font-medium">{type === "cvi" ? t("Animals covered *") : t("Animals covered")}</span>
           <AnimalPicker animals={available} selected={ids} onChange={setIds} error={errors.animal_ids} />
         </div>
 
-        <Row label="File *" error={errors.file} hint="PDF, PNG or JPG, up to 10 MB">
+        <Row label={t("File *")} error={errors.file} hint="PDF, PNG or JPG, up to 10 MB">
           <input
             name="file"
             type="file"
@@ -170,11 +174,9 @@ export function DocumentForm({
         </Row>
 
         <div className="flex flex-col-reverse gap-2 pt-1 sm:flex-row sm:justify-end">
-          <Link href="/compliance?tab=documents" className={btn.ghost}>
-            Cancel
+          <Link href="/compliance?tab=documents" className={btn.ghost}>{t("Cancel")}
           </Link>
-          <button type="submit" className={btn.primary}>
-            Upload document
+          <button type="submit" className={btn.primary}>{t("Upload document")}
           </button>
         </div>
       </Card>
@@ -184,13 +186,13 @@ export function DocumentForm({
           <div className="space-y-3">
             <RequestPreview method="POST" path="/documents" body={saved} doneHref="/compliance?tab=documents" doneLabel="Back to documents" />
             <Card className="p-4 text-xs text-muted">
-              Next, the client would <b className="text-fg">PUT</b> the {fmtSize(saved.size_kb)} file to the presigned S3 URL returned by that call. The file was not sent anywhere.
+              {t("Next, the client would")} <b className="text-fg">PUT</b> {t("the {size} file to the presigned S3 URL returned by that call. The file was not sent anywhere.", { size: fmtSize(saved.size_kb) })}
             </Card>
           </div>
         ) : (
           <Card className="p-4 text-xs text-muted sm:p-5">
-            <p className="font-medium text-fg">POST /documents</p>
-            <p className="mt-1">Metadata goes to the API; the file itself uploads straight to S3 with a presigned URL. Provisional schema.</p>
+            <p className="font-medium text-fg">{t("POST /documents")}</p>
+            <p className="mt-1">{t("Metadata goes to the API; the file itself uploads straight to S3 with a presigned URL. Provisional schema.")}</p>
           </Card>
         )}
       </div>

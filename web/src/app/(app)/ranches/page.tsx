@@ -1,24 +1,26 @@
-import type { Metadata } from "next";
 import Link from "next/link";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faChevronRight, faCow, faLayerGroup, faMountain, faPlus, faTriangleExclamation } from "@fortawesome/free-solid-svg-icons";
 import { listRanches } from "@/lib/api";
-import { fmtDate, fmtNum } from "@/lib/format";
-import { Item, Stagger } from "@/components/motion";
-import { Badge, Card, PageHeader, btn } from "@/components/ui";
 
-export const metadata: Metadata = { title: "Ranches" };
+import { Item, Stagger } from "@/components/motion";
+import { Badge, Card, PageHeader } from "@/components/ui";
+import { btn } from "@/components/ui-styles";
+import { getI18n, pageTitle } from "@/lib/i18n/server";
+
+export const generateMetadata = pageTitle("Ranches");
 
 export default async function RanchesPage() {
+  const { t, fmtDate, fmtNum } = await getI18n();
   const ranches = await listRanches();
   return (
     <>
       <PageHeader
-        title="Ranches"
-        subtitle="Properties, perimeters and zones"
+        title={t("Ranches")}
+        subtitle={t("Properties, perimeters and zones")}
         actions={
           <Link href="/ranches/new" className={btn.primary}>
-            <FontAwesomeIcon icon={faPlus} /> Add ranch
+            <FontAwesomeIcon icon={faPlus} /> {t("Add ranch")}
           </Link>
         }
       />
@@ -30,7 +32,7 @@ export default async function RanchesPage() {
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <h2 className="truncate text-lg font-semibold tracking-tight">{r.name}</h2>
-                    <p className="text-xs text-muted">Onboarded {fmtDate(r.created_at)}</p>
+                    <p className="text-xs text-muted">{t("Onboarded {date}", { date: fmtDate(r.created_at) })}</p>
                   </div>
                   <FontAwesomeIcon icon={faChevronRight} className="mt-1.5 text-xs text-muted transition-transform group-hover:translate-x-0.5" />
                 </div>
@@ -43,13 +45,13 @@ export default async function RanchesPage() {
                     <div key={s.l} className="rounded-xl bg-surface2 px-2 py-3">
                       <FontAwesomeIcon icon={s.icon} className="text-primary" />
                       <dd className="mt-1 text-lg font-semibold tabular-nums leading-none">{s.v}</dd>
-                      <dt className="mt-1 text-[11px] text-muted">{s.l}</dt>
+                      <dt className="mt-1 text-[11px] text-muted">{t(s.l)}</dt>
                     </div>
                   ))}
                 </dl>
                 {r.breach_count > 0 && (
                   <Badge tone="danger" className="mt-4">
-                    <FontAwesomeIcon icon={faTriangleExclamation} /> {r.breach_count} outside boundary
+                    <FontAwesomeIcon icon={faTriangleExclamation} /> {t("{n} outside boundary", { n: r.breach_count })}
                   </Badge>
                 )}
               </Card>

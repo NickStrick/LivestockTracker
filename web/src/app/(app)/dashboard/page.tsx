@@ -13,14 +13,16 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 import { getAnimalTags, getDashboard } from "@/lib/api";
-import { fmtNum, timeAgo } from "@/lib/format";
+
 import { ActivityChart, CompositionChart, WeightTrendChart } from "@/components/charts/Charts";
 import { AuditTimeline } from "@/components/AuditTimeline";
 import { Item, Stagger } from "@/components/motion";
 import { ALERT_META, SEVERITY_META } from "@/components/alerts/alertMeta";
 import { Badge, Card, CardHeader, Empty, PageHeader, ProvisionalNote } from "@/components/ui";
+import { getI18n } from "@/lib/i18n/server";
 
-function Kpi({ label, value, icon, tone, foot, href }: { label: string; value: string; icon: IconDefinition; tone: string; foot: React.ReactNode; href?: string }) {
+async function Kpi({ label, value, icon, tone, foot, href }: { label: string; value: string; icon: IconDefinition; tone: string; foot: React.ReactNode; href?: string }) {
+  const { t } = await getI18n();
   const card = (
     <Card className={clsx("h-full p-4 sm:p-5", href && "transition group-hover:border-primary/60 group-hover:shadow-md")}>
       <div className="flex items-start justify-between gap-2">
@@ -32,8 +34,7 @@ function Kpi({ label, value, icon, tone, foot, href }: { label: string; value: s
       <p className="mt-2 text-2xl font-semibold tracking-tight tabular-nums sm:text-3xl">{value}</p>
       <div className="mt-1 text-xs text-muted">{foot}</div>
       {href && (
-        <p className="mt-2 inline-flex items-center gap-1 text-[11px] font-medium text-primary">
-          View details <FontAwesomeIcon icon={faChevronRight} className="text-[9px] transition-transform group-hover:translate-x-0.5" />
+        <p className="mt-2 inline-flex items-center gap-1 text-[11px] font-medium text-primary">{t("View details")} <FontAwesomeIcon icon={faChevronRight} className="text-[9px] transition-transform group-hover:translate-x-0.5" />
         </p>
       )}
     </Card>
@@ -48,55 +49,56 @@ function Kpi({ label, value, icon, tone, foot, href }: { label: string; value: s
 }
 
 export default async function DashboardPage() {
+  const { t, fmtNum, timeAgo } = await getI18n();
   const [d, tags] = await Promise.all([getDashboard(), getAnimalTags()]);
   const k = d.kpis;
   const up = k.avg_weight_delta_pct >= 0;
 
   return (
     <>
-      <PageHeader title="Dashboard" subtitle="Herd overview across all ranches" />
+      <PageHeader title={t("Dashboard")} subtitle={t("Herd overview across all ranches")} />
 
       <Stagger className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
         <Item>
-          <Kpi label="Active head" value={fmtNum(k.active_head)} icon={faCow} tone="bg-primary/15 text-primary" foot={`${d.ranches.length} ranches`} href="/animals" />
+          <Kpi label={t("Active head")} value={fmtNum(k.active_head)} icon={faCow} tone="bg-primary/15 text-primary" foot={t("{n} ranches", { n: d.ranches.length })} href="/animals" />
         </Item>
         <Item>
           <Kpi
-            label="Avg. weight"
+            label={t("Avg. weight")}
             value={`${fmtNum(k.avg_weight_lb)} lb`}
             icon={faWeightScale}
             tone="bg-accent/15 text-accent"
             foot={
               <span className={clsx("inline-flex items-center gap-1 font-medium", up ? "text-ok" : "text-danger")}>
-                <FontAwesomeIcon icon={up ? faArrowTrendUp : faArrowTrendDown} /> {Math.abs(k.avg_weight_delta_pct)}% vs last month
+                <FontAwesomeIcon icon={up ? faArrowTrendUp : faArrowTrendDown} /> {t("{pct}% vs last month", { pct: Math.abs(k.avg_weight_delta_pct) })}
               </span>
             }
           />
         </Item>
         <Item>
           <Kpi
-            label="Vaccines overdue"
+            label={t("Vaccines overdue")}
             value={String(k.vaccinations_overdue)}
             icon={faSyringe}
             tone="bg-warn/15 text-warn"
-            foot={`${k.vaccinations_due_soon} more due in 30 days`}
+            foot={t("{n} more due in 30 days", { n: k.vaccinations_due_soon })}
             href="/vaccinations?status=overdue"
           />
         </Item>
         <Item>
-          <Kpi label="Boundary breaches" value={String(k.breaches_7d)} icon={faTriangleExclamation} tone="bg-danger/15 text-danger" foot="last 7 days" href="/breaches" />
+          <Kpi label={t("Boundary breaches")} value={String(k.breaches_7d)} icon={faTriangleExclamation} tone="bg-danger/15 text-danger" foot={t("last 7 days")} href="/breaches" />
         </Item>
       </Stagger>
 
       <div className="mt-4 grid gap-4 sm:mt-6 sm:gap-6 lg:grid-cols-3">
         <Card className="lg:col-span-2">
-          <CardHeader title="Average herd weight" sub="Monthly average across active animals" icon={faWeightScale} action={<ProvisionalNote>Weights come from mock health-service data</ProvisionalNote>} />
+          <CardHeader title={t("Average herd weight")} sub={t("Monthly average across active animals")} icon={faWeightScale} action={<ProvisionalNote>{t("Weights come from mock health-service data")}</ProvisionalNote>} />
           <div className="p-3 sm:p-5">
             <WeightTrendChart data={d.weight_trend} />
           </div>
         </Card>
         <Card>
-          <CardHeader title="Herd composition" icon={faCow} />
+          <CardHeader title={t("Herd composition")} icon={faCow} />
           <div className="p-4 sm:p-5">
             <CompositionChart data={d.composition} />
           </div>
@@ -104,12 +106,12 @@ export default async function DashboardPage() {
 
         <Card className="lg:col-span-2">
           <CardHeader
-            title="Needs attention"
+            title={t("Needs attention")}
             icon={faTriangleExclamation}
-            action={<Link href="/alerts" className="-mx-2 inline-flex min-h-10 items-center px-2 text-xs font-medium text-primary hover:underline">View all</Link>}
+            action={<Link href="/alerts" className="-mx-2 inline-flex min-h-10 items-center px-2 text-xs font-medium text-primary hover:underline">{t("View all")}</Link>}
           />
           {d.alerts.length === 0 ? (
-            <Empty>All clear. Nothing needs attention.</Empty>
+            <Empty>{t("All clear. Nothing needs attention.")}</Empty>
           ) : (
             <ul className="divide-y divide-line">
               {d.alerts.map((a) => {
@@ -123,9 +125,9 @@ export default async function DashboardPage() {
                       </span>
                       <div className="min-w-0 flex-1">
                         <p className="truncate text-sm font-medium">
-                          <span className={clsx("text-primary", meta.mono && "font-mono")}>{a.subject}</span> · {a.title}
+                          <span className={clsx("text-primary", meta.mono && "font-mono")}>{a.subject}</span> · {t(a.title)}
                         </p>
-                        <p className="truncate text-xs text-muted">{a.detail}</p>
+                        <p className="truncate text-xs text-muted">{t(a.detail)}</p>
                       </div>
                       <span className="hidden shrink-0 text-xs text-muted sm:block">{timeAgo(a.at)}</span>
                       <FontAwesomeIcon icon={faChevronRight} className="text-xs text-muted transition-transform group-hover:translate-x-0.5" />
@@ -138,7 +140,7 @@ export default async function DashboardPage() {
         </Card>
 
         <Card>
-          <CardHeader title="Ranches" icon={faLocationCrosshairs} action={<Link href="/ranches" className="-mx-2 inline-flex min-h-10 items-center px-2 text-xs font-medium text-primary hover:underline">View all</Link>} />
+          <CardHeader title={t("Ranches")} icon={faLocationCrosshairs} action={<Link href="/ranches" className="-mx-2 inline-flex min-h-10 items-center px-2 text-xs font-medium text-primary hover:underline">{t("View all")}</Link>} />
           <ul className="divide-y divide-line">
             {d.ranches.map((r) => (
               <li key={r.id}>
@@ -146,12 +148,12 @@ export default async function DashboardPage() {
                   <div className="min-w-0">
                     <p className="truncate text-sm font-medium">{r.name}</p>
                     <p className="text-xs text-muted">
-                      {fmtNum(r.area_acres)} acres · {r.zone_count} zones
+                      {t("{acres} acres · {zones} zones", { acres: fmtNum(r.area_acres), zones: r.zone_count })}
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Badge tone="primary">{r.head_count} head</Badge>
-                    {r.breach_count > 0 && <Badge tone="danger">{r.breach_count} out</Badge>}
+                    <Badge tone="primary">{t("{n} head", { n: r.head_count })}</Badge>
+                    {r.breach_count > 0 && <Badge tone="danger">{t("{n} out", { n: r.breach_count })}</Badge>}
                   </div>
                 </Link>
               </li>
@@ -160,11 +162,11 @@ export default async function DashboardPage() {
         </Card>
 
         <Card className="lg:col-span-2">
-          <CardHeader title="Recent activity" sub="Latest audit events across services" action={<Link href="/activity" className="-mx-2 inline-flex min-h-10 items-center px-2 text-xs font-medium text-primary hover:underline">View all</Link>} />
+          <CardHeader title={t("Recent activity")} sub={t("Latest audit events across services")} action={<Link href="/activity" className="-mx-2 inline-flex min-h-10 items-center px-2 text-xs font-medium text-primary hover:underline">{t("View all")}</Link>} />
           <AuditTimeline events={d.recent_events} tags={tags} compact />
         </Card>
         <Card>
-          <CardHeader title="Events per week" sub="Excludes registrations" />
+          <CardHeader title={t("Events per week")} sub={t("Excludes registrations")} />
           <div className="p-3 sm:p-5">
             <ActivityChart data={d.activity_by_week} />
           </div>

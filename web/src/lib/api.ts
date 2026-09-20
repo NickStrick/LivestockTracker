@@ -404,7 +404,7 @@ export async function getDashboard(): Promise<DashboardData> {
   const weight_trend = [...byMonth.entries()]
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([k, xs]) => ({
-      month: new Date(k + "-15").toLocaleString("en-US", { month: "short", timeZone: "UTC" }),
+      month: k + "-15",
       avg_lb: Math.round(xs.reduce((s, x) => s + x, 0) / xs.length),
     }));
   const last = weight_trend.at(-1)?.avg_lb ?? 0;
@@ -420,7 +420,7 @@ export async function getDashboard(): Promise<DashboardData> {
     const end = NOW - (7 - i) * 7 * DAY;
     const start = end - 7 * DAY;
     return {
-      week: new Date(end).toLocaleString("en-US", { month: "short", day: "numeric", timeZone: "UTC" }),
+      week: new Date(end).toISOString(),
       events: audit.filter((e) => {
         const t = new Date(e.occurred_at).getTime();
         return t > start && t <= end && e.event_type !== "animal_created" && e.event_type !== "identifier_added";

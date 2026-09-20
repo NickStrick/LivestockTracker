@@ -7,19 +7,23 @@ import { AnimatePresence, motion } from "framer-motion";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCow, faLayerGroup, faMap, faSatellite } from "@fortawesome/free-solid-svg-icons";
 import type { Ring, ZoneOut, ZoneUpdate } from "@/lib/types";
-import { titleCase } from "@/lib/format";
-import { Badge, Card, CardHeader, btn } from "@/components/ui";
+
+import { Badge, Card, CardHeader } from "@/components/ui";
+import { btn } from "@/components/ui-styles";
 import { ZONE_COLORS, type MapAnimal } from "./zones";
+import { useI18n } from "@/lib/i18n/client";
+import { MapLoading } from "@/components/ranches/MapLoading";
 
 const RanchMap = dynamic(() => import("./RanchMap"), {
   ssr: false,
-  loading: () => <div className="grid h-full place-items-center bg-surface2 text-sm text-muted">Loading map…</div>,
+  loading: () => <MapLoading />,
 });
 
 const CHIP = "inline-flex h-9 items-center gap-2 rounded-lg px-3 text-xs font-medium transition-colors";
 const INPUT = "h-10 w-full rounded-xl border border-line bg-surface px-3 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20";
 
 function ZoneEditor({ zone, onApply }: { zone: ZoneOut; onApply: (patch: ZoneUpdate) => void }) {
+  const { t } = useI18n();
   const [name, setName] = useState(zone.name);
   const [description, setDescription] = useState(zone.description ?? "");
   const [active, setActive] = useState(zone.active);
@@ -42,22 +46,21 @@ function ZoneEditor({ zone, onApply }: { zone: ZoneOut; onApply: (patch: ZoneUpd
   return (
     <motion.form initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} onSubmit={submit} className="overflow-hidden border-t border-line bg-surface2/50">
       <div className="grid gap-3 p-4 sm:p-5">
-        <p className="text-[11px] font-medium uppercase tracking-wide text-muted">Edit zone</p>
-        <input value={name} onChange={(e) => setName(e.target.value)} className={INPUT} aria-label="Zone name" />
-        <input value={description} onChange={(e) => setDescription(e.target.value)} className={INPUT} placeholder="Description" aria-label="Description" />
+        <p className="text-[11px] font-medium uppercase tracking-wide text-muted">{t("Edit zone")}</p>
+        <input value={name} onChange={(e) => setName(e.target.value)} className={INPUT} aria-label={t("Zone name")} />
+        <input value={description} onChange={(e) => setDescription(e.target.value)} className={INPUT} placeholder={t("Description")} aria-label={t("Description")} />
         <label className="flex cursor-pointer items-center justify-between gap-3 rounded-xl border border-line bg-surface px-3 py-2.5 text-sm">
           <span>
-            <span className="font-medium">{active ? "Active" : "Lifted"}</span>
-            <span className="block text-xs text-muted">{active ? "Animals are tracked against this zone" : "Zone is ignored for alerts"}</span>
+            <span className="font-medium">{active ? t("Active") : t("Lifted")}</span>
+            <span className="block text-xs text-muted">{active ? t("Animals are tracked against this zone") : t("Zone is ignored for alerts")}</span>
           </span>
           <input type="checkbox" checked={active} onChange={(e) => setActive(e.target.checked)} className="size-5 accent-[var(--primary)]" />
         </label>
-        <button type="submit" disabled={!dirty || !name.trim()} className={btn.primary}>
-          Save changes
+        <button type="submit" disabled={!dirty || !name.trim()} className={btn.primary}>{t("Save changes")}
         </button>
         {sent && !dirty && (
           <p className="text-xs text-muted">
-            Applied on this page only (no backend yet). Would send <b>PATCH</b> <code className="font-mono">{JSON.stringify(sent)}</code>
+            {t("Applied on this page only (no backend yet). Would send")} <b>PATCH</b> <code className="font-mono">{JSON.stringify(sent)}</code>
           </p>
         )}
       </div>
@@ -66,6 +69,7 @@ function ZoneEditor({ zone, onApply }: { zone: ZoneOut; onApply: (patch: ZoneUpd
 }
 
 export function RanchView({ boundary, zones: initialZones, animals }: { boundary: Ring; zones: ZoneOut[]; animals: MapAnimal[] }) {
+  const { t, titleCase } = useI18n();
   const [zones, setZones] = useState(initialZones);
   const [layer, setLayer] = useState<"street" | "satellite">("satellite");
   const [selected, setSelected] = useState<string | null>(null);
@@ -101,7 +105,7 @@ export function RanchView({ boundary, zones: initialZones, animals }: { boundary
             ))}
           </div>
           <button onClick={() => setShowAnimals((s) => !s)} className={clsx(CHIP, "border border-line", showAnimals ? "text-primary" : "text-muted")} aria-pressed={showAnimals}>
-            <FontAwesomeIcon icon={faCow} /> Animals ({animals.length}){out > 0 && <span className="text-danger">· {out} out</span>}
+            <FontAwesomeIcon icon={faCow} /> {t("Animals ({n})", { n: animals.length })}{out > 0 && <span className="text-danger">· {t("{n} out", { n: out })}</span>}
           </button>
         </div>
         <div className="h-[55vh] min-h-72 sm:h-[60vh] lg:h-[34rem]">
@@ -110,7 +114,7 @@ export function RanchView({ boundary, zones: initialZones, animals }: { boundary
       </Card>
 
       <Card className="h-fit overflow-hidden">
-        <CardHeader title="Zones" icon={faLayerGroup} sub={`${zones.filter((z) => z.active).length} active of ${zones.length}`} />
+        <CardHeader title={t("Zones")} icon={faLayerGroup} sub={t("{a} active of {b}", { a: zones.filter((z) => z.active).length, b: zones.length })} />
         <ul className="divide-y divide-line">
           {zones.map((z) => (
             <li key={z.id}>
@@ -119,7 +123,7 @@ export function RanchView({ boundary, zones: initialZones, animals }: { boundary
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center justify-between gap-2">
                     <p className="truncate text-sm font-medium">{z.name}</p>
-                    {!z.active && <Badge>Lifted</Badge>}
+                    {!z.active && <Badge>{t("Lifted")}</Badge>}
                   </div>
                   <p className="text-xs text-muted">{titleCase(z.zone_type)}</p>
                   {z.description && <p className="mt-0.5 text-xs text-muted/90">{z.description}</p>}

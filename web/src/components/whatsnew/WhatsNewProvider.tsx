@@ -6,8 +6,9 @@ import clsx from "clsx";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faWandMagicSparkles, faXmark } from "@fortawesome/free-solid-svg-icons";
 import { LATEST_RELEASE, RELEASES, type ReleaseItemType } from "@/lib/releases";
-import { fmtDate } from "@/lib/format";
+
 import { useLocalSet } from "@/lib/useLocalSet";
+import { useI18n } from "@/lib/i18n/client";
 
 interface WhatsNewValue {
   open: () => void;
@@ -24,6 +25,7 @@ const TYPE_STYLE: Record<ReleaseItemType, { label: string; cls: string }> = {
 };
 
 export function WhatsNewProvider({ children }: { children: React.ReactNode }) {
+  const { t, fmtDate } = useI18n();
   const seen = useLocalSet("estancia:seen-releases");
   const [isOpen, setOpen] = useState(false);
   const panel = useRef<HTMLDivElement>(null);
@@ -76,13 +78,12 @@ export function WhatsNewProvider({ children }: { children: React.ReactNode }) {
                     <FontAwesomeIcon icon={faWandMagicSparkles} />
                   </span>
                   <div>
-                    <h2 id="whatsnew-title" className="text-base font-semibold leading-tight">
-                      What&apos;s new
+                    <h2 id="whatsnew-title" className="text-base font-semibold leading-tight">{t("What's new")}
                     </h2>
-                    <p className="text-xs text-muted">Version {LATEST_RELEASE.version}</p>
+                    <p className="text-xs text-muted">{t("Version {version}", { version: LATEST_RELEASE.version })}</p>
                   </div>
                 </div>
-                <button onClick={close} aria-label="Close" className="grid size-9 place-items-center rounded-lg text-muted transition hover:bg-surface2 hover:text-fg">
+                <button onClick={close} aria-label={t("Close")} className="grid size-9 place-items-center rounded-lg text-muted transition hover:bg-surface2 hover:text-fg">
                   <FontAwesomeIcon icon={faXmark} />
                 </button>
               </header>
@@ -91,18 +92,18 @@ export function WhatsNewProvider({ children }: { children: React.ReactNode }) {
                 {RELEASES.map((r, i) => (
                   <section key={r.version}>
                     <div className="flex flex-wrap items-center gap-2">
-                      <h3 className="text-sm font-semibold">{r.title}</h3>
-                      {i === 0 && <span className="rounded-full bg-primary px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-primary-fg">Latest</span>}
+                      <h3 className="text-sm font-semibold">{t(r.title)}</h3>
+                      {i === 0 && <span className="rounded-full bg-primary px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-primary-fg">{t("Latest")}</span>}
                     </div>
                     <p className="mt-0.5 text-xs text-muted">
                       v{r.version} · {fmtDate(r.date)}
                     </p>
-                    <p className="mt-2 text-sm text-muted">{r.summary}</p>
+                    <p className="mt-2 text-sm text-muted">{t(r.summary)}</p>
                     <ul className="mt-3 space-y-2">
                       {r.items.map((it) => (
                         <li key={it.text} className="flex items-start gap-2.5 text-sm">
-                          <span className={clsx("mt-0.5 w-[4.5rem] shrink-0 rounded-md py-0.5 text-center text-[10px] font-semibold uppercase tracking-wide", TYPE_STYLE[it.type].cls)}>{TYPE_STYLE[it.type].label}</span>
-                          <span>{it.text}</span>
+                          <span className={clsx("mt-0.5 w-[4.5rem] shrink-0 rounded-md py-0.5 text-center text-[10px] font-semibold uppercase tracking-wide", TYPE_STYLE[it.type].cls)}>{t(TYPE_STYLE[it.type].label)}</span>
+                          <span>{t(it.text)}</span>
                         </li>
                       ))}
                     </ul>

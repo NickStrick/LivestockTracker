@@ -11,6 +11,17 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: "0.5.0",
+    date: "2026-09-19",
+    title: "Spanish and English",
+    summary: "Use Estancia in English or Spanish, and switch any time from the top bar.",
+    items: [
+      { type: "new", text: "Every screen is available in Spanish (Mexico), with an EN | ES switch in the top bar." },
+      { type: "improved", text: "Dates, numbers and relative times follow the language you choose." },
+      { type: "improved", text: "The first time you visit, the language follows your browser." },
+    ],
+  },
+  {
     version: "0.4.0",
     date: "2026-09-19",
     title: "Compliance and drill-downs",

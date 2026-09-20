@@ -9,10 +9,12 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faBell, faCheckDouble } from "@fortawesome/free-solid-svg-icons";
 import { AlertRow } from "./AlertRow";
 import { useAlerts } from "./AlertsProvider";
+import { useI18n } from "@/lib/i18n/client";
 
 const PREVIEW_LIMIT = 8;
 
 export function NotificationsBell() {
+  const { t } = useI18n();
   const { alerts, unread, unreadCount, hasUnreadCritical, ready, isRead, markRead, markAllRead } = useAlerts();
   const path = usePathname();
   // Storing the path the menu was opened on closes it automatically on any navigation.
@@ -42,7 +44,7 @@ export function NotificationsBell() {
     <div ref={wrap} className="sm:relative">
       <button
         onClick={() => setOpenedAt(open ? null : path)}
-        aria-label={badge ? `Notifications, ${unreadCount} unread` : "Notifications"}
+        aria-label={badge ? t("Notifications, {n} unread", { n: unreadCount }) : t("Notifications")}
         aria-haspopup="dialog"
         aria-expanded={open}
         className={clsx(
@@ -79,7 +81,7 @@ export function NotificationsBell() {
         {open && (
           <motion.div
             role="dialog"
-            aria-label="Notifications"
+            aria-label={t("Notifications")}
             initial={{ opacity: 0, y: -8, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -8, scale: 0.98 }}
@@ -88,13 +90,13 @@ export function NotificationsBell() {
           >
             <div className="flex items-center justify-between gap-2 border-b border-line px-4 py-3">
               <div className="flex gap-1 rounded-lg bg-surface2 p-0.5 text-xs font-medium">
-                {(["all", "unread"] as const).map((t) => (
+                {(["all", "unread"] as const).map((tk) => (
                   <button
-                    key={t}
-                    onClick={() => setTab(t)}
-                    className={clsx("rounded-md px-2.5 py-1 transition-colors", tab === t ? "bg-surface shadow-sm" : "text-muted hover:text-fg")}
+                    key={tk}
+                    onClick={() => setTab(tk)}
+                    className={clsx("rounded-md px-2.5 py-1 transition-colors", tab === tk ? "bg-surface shadow-sm" : "text-muted hover:text-fg")}
                   >
-                    {t === "all" ? "All" : `Unread${ready ? ` ${unreadCount}` : ""}`}
+                    {tk === "all" ? t("All") : `${t("Unread")}${ready ? ` ${unreadCount}` : ""}`}
                   </button>
                 ))}
               </div>
@@ -103,20 +105,20 @@ export function NotificationsBell() {
                 disabled={!unreadCount}
                 className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-xs font-medium text-primary transition hover:bg-surface2 disabled:pointer-events-none disabled:opacity-40"
               >
-                <FontAwesomeIcon icon={faCheckDouble} /> Mark all read
+                <FontAwesomeIcon icon={faCheckDouble} /> {t("Mark all read")}
               </button>
             </div>
 
             <div className="max-h-[60vh] divide-y divide-line overflow-y-auto overscroll-contain">
               {list.length === 0 ? (
-                <p className="px-4 py-10 text-center text-sm text-muted">{tab === "unread" ? "You're all caught up." : "No alerts right now."}</p>
+                <p className="px-4 py-10 text-center text-sm text-muted">{tab === "unread" ? t("You're all caught up.") : t("No alerts right now.")}</p>
               ) : (
                 list.map((a) => <AlertRow key={a.id} alert={a} read={isRead(a.id)} onOpen={() => markRead(a.id)} />)
               )}
             </div>
 
             <Link href="/alerts" className="block border-t border-line px-4 py-3 text-center text-sm font-medium text-primary transition-colors hover:bg-surface2">
-              View all alerts ({alerts.length})
+              {t("View all alerts ({n})", { n: alerts.length })}
             </Link>
           </motion.div>
         )}

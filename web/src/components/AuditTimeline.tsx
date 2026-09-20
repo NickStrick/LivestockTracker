@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import clsx from "clsx";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -15,7 +17,8 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 import type { AuditEventOut } from "@/lib/types";
-import { actorName, eventLabel, eventSummary, fmtDateTime, timeAgo } from "@/lib/format";
+
+import { useI18n } from "@/lib/i18n/client";
 
 const META: Record<string, { icon: IconDefinition; tone: string }> = {
   animal_created: { icon: faCow, tone: "bg-primary/15 text-primary" },
@@ -33,7 +36,8 @@ const FALLBACK = { icon: faDna, tone: "bg-surface2 text-muted" };
 
 /** `tags` maps animal_id -> tag_id so event rows can link to animals. */
 export function AuditTimeline({ events, tags = {}, showAnimal = true, compact = false }: { events: AuditEventOut[]; tags?: Record<string, string>; showAnimal?: boolean; compact?: boolean }) {
-  if (!events.length) return <p className="px-5 py-8 text-center text-sm text-muted">No events yet.</p>;
+  const { t, actorName, eventLabel, eventSummary, fmtDateTime, timeAgo } = useI18n();
+  if (!events.length) return <p className="px-5 py-8 text-center text-sm text-muted">{t("No events yet.")}</p>;
   return (
     <ol className={clsx("relative", compact ? "px-4 py-2 sm:px-5" : "px-4 py-4 sm:px-5")}>
       {events.map((e, i) => {
@@ -63,7 +67,7 @@ export function AuditTimeline({ events, tags = {}, showAnimal = true, compact = 
                 </time>
               </div>
               <p className="mt-0.5 break-words text-xs text-muted">{eventSummary(e.event_type, e.event_data)}</p>
-              <p className="mt-0.5 text-[11px] text-muted/80">by {actorName(e.actor_id)}</p>
+              <p className="mt-0.5 text-[11px] text-muted/80">{t("by {name}", { name: actorName(e.actor_id) })}</p>
             </div>
           </li>
         );

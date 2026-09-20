@@ -7,13 +7,15 @@ import clsx from "clsx";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCheck, faLocationCrosshairs, faMap, faSatellite } from "@fortawesome/free-solid-svg-icons";
 import type { BreachRow, Ring, ZoneOut } from "@/lib/types";
-import { fmtDateTime, fmtNum, timeAgo, titleCase } from "@/lib/format";
+
 import { useAlerts } from "@/components/alerts/AlertsProvider";
 import { Badge, Card, CardHeader } from "@/components/ui";
+import { useI18n } from "@/lib/i18n/client";
+import { MapLoading } from "@/components/ranches/MapLoading";
 
 const RanchMap = dynamic(() => import("@/components/ranches/RanchMap"), {
   ssr: false,
-  loading: () => <div className="grid h-full place-items-center bg-surface2 text-sm text-muted">Loading map…</div>,
+  loading: () => <MapLoading />,
 });
 
 const CHIP = "inline-flex h-9 items-center gap-2 rounded-lg px-3 text-xs font-medium transition-colors";
@@ -25,9 +27,9 @@ export interface BreachRanch {
   zones: ZoneOut[];
 }
 
-const meters = (m: number) => (m >= 1000 ? `${(m / 1000).toFixed(1)} km` : `${fmtNum(m)} m`);
-
 export function BreachesView({ breaches, ranches }: { breaches: BreachRow[]; ranches: BreachRanch[] }) {
+  const { t, fmtDateTime, fmtNum, timeAgo, titleCase } = useI18n();
+  const meters = (m: number) => (m >= 1000 ? `${(m / 1000).toFixed(1)} km` : `${fmtNum(m)} m`);
   const { isRead, markRead, ready } = useAlerts();
   const affected = useMemo(() => ranches.filter((r) => breaches.some((b) => b.ranch_id === r.id)), [ranches, breaches]);
   const [ranchId, setRanchId] = useState(affected[0]?.id ?? "");
@@ -49,7 +51,7 @@ export function BreachesView({ breaches, ranches }: { breaches: BreachRow[]; ran
           { label: "Farthest out", value: farthest ? meters(farthest) : "-", tone: "" },
         ].map((k) => (
           <div key={k.label} className="rounded-2xl border border-line bg-surface p-3.5 sm:p-4">
-            <p className="text-xs font-medium text-muted">{k.label}</p>
+            <p className="text-xs font-medium text-muted">{t(k.label)}</p>
             <p className={clsx("mt-1 text-2xl font-semibold tabular-nums", k.tone)}>{k.value}</p>
           </div>
         ))}
@@ -90,7 +92,7 @@ export function BreachesView({ breaches, ranches }: { breaches: BreachRow[]; ran
         </Card>
 
         <Card className="h-fit overflow-hidden">
-          <CardHeader title="Animals outside" sub={ranch?.name} icon={faLocationCrosshairs} />
+          <CardHeader title={t("Animals outside")} sub={ranch?.name} icon={faLocationCrosshairs} />
           <ul className="divide-y divide-line">
             {list.map((b) => {
               const acked = ready && isRead(b.id);
@@ -105,18 +107,18 @@ export function BreachesView({ breaches, ranches }: { breaches: BreachRow[]; ran
                         {timeAgo(b.occurred_at)} · {b.lat.toFixed(4)}, {b.lon.toFixed(4)}
                       </p>
                     </div>
-                    <Badge tone={acked ? "neutral" : "danger"}>{meters(b.distance_m)} out</Badge>
+                    <Badge tone={acked ? "neutral" : "danger"}>{t("{dist} out", { dist: meters(b.distance_m) })}</Badge>
                   </div>
                   <div className="mt-2.5 flex gap-2">
                     <button onClick={() => setSelected(selected === b.animal_id ? null : b.animal_id)} className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-line px-2.5 text-xs font-medium transition hover:bg-surface2">
-                      <FontAwesomeIcon icon={faLocationCrosshairs} /> Locate
+                      <FontAwesomeIcon icon={faLocationCrosshairs} /> {t("Locate")}
                     </button>
                     <button
                       onClick={() => markRead(b.id)}
                       disabled={acked}
                       className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-line px-2.5 text-xs font-medium transition hover:bg-surface2 disabled:pointer-events-none disabled:text-ok"
                     >
-                      <FontAwesomeIcon icon={faCheck} /> {acked ? "Acknowledged" : "Acknowledge"}
+                      <FontAwesomeIcon icon={faCheck} /> {acked ? t("Acknowledged") : t("Acknowledge")}
                     </button>
                   </div>
                 </li>

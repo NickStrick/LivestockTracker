@@ -4,12 +4,14 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { z } from "zod";
 import { closeRing, pointInRing } from "@/lib/geo";
-import { titleCase } from "@/lib/format";
+
 import { ZONE_TYPES, type Ring, type ZoneCreate, type ZoneOut, type ZoneType } from "@/lib/types";
-import { Card, btn } from "@/components/ui";
+import { Card } from "@/components/ui";
+import { btn } from "@/components/ui-styles";
 import { RequestPreview } from "@/components/RequestPreview";
 import { BoundaryPicker } from "./BoundaryPicker";
 import { ZONE_COLORS } from "./zones";
+import { useI18n } from "@/lib/i18n/client";
 
 const INPUT = "h-11 w-full rounded-xl border border-line bg-surface px-3 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20";
 
@@ -21,6 +23,7 @@ const schema = z.object({
 });
 
 export function ZoneForm({ ranchId, ranchName, ranchBoundary, existing }: { ranchId: string; ranchName: string; ranchBoundary: Ring; existing: ZoneOut[] }) {
+  const { t, titleCase } = useI18n();
   const [name, setName] = useState("");
   const [type, setType] = useState<ZoneType>("pasture");
   const [description, setDescription] = useState("");
@@ -58,35 +61,33 @@ export function ZoneForm({ ranchId, ranchName, ranchBoundary, existing }: { ranc
       <Card className="space-y-5 p-4 sm:p-6">
         <div className="grid gap-4 sm:grid-cols-2">
           <label className="block">
-            <span className="mb-1.5 block text-sm font-medium">Zone name *</span>
-            <input value={name} onChange={(e) => setName(e.target.value)} className={INPUT} placeholder="South Pasture" />
-            {errors.name && <span className="mt-1 block text-xs text-danger">{errors.name}</span>}
+            <span className="mb-1.5 block text-sm font-medium">{t("Zone name *")}</span>
+            <input value={name} onChange={(e) => setName(e.target.value)} className={INPUT} placeholder={t("South Pasture")} />
+            {errors.name && <span className="mt-1 block text-xs text-danger">{t(errors.name)}</span>}
           </label>
           <label className="block">
-            <span className="mb-1.5 block text-sm font-medium">Type *</span>
+            <span className="mb-1.5 block text-sm font-medium">{t("Type *")}</span>
             <select value={type} onChange={(e) => setType(e.target.value as ZoneType)} className={INPUT}>
-              {ZONE_TYPES.map((t) => (
-                <option key={t} value={t}>
-                  {titleCase(t)}
+              {ZONE_TYPES.map((tk) => (
+                <option key={tk} value={tk}>
+                  {titleCase(tk)}
                 </option>
               ))}
             </select>
           </label>
         </div>
         <label className="block">
-          <span className="mb-1.5 block text-sm font-medium">Description</span>
-          <input value={description} onChange={(e) => setDescription(e.target.value)} className={INPUT} placeholder="Optional notes" />
+          <span className="mb-1.5 block text-sm font-medium">{t("Description")}</span>
+          <input value={description} onChange={(e) => setDescription(e.target.value)} className={INPUT} placeholder={t("Optional notes")} />
         </label>
         <div>
-          <span className="mb-1.5 block text-sm font-medium">Boundary *</span>
+          <span className="mb-1.5 block text-sm font-medium">{t("Boundary *")}</span>
           <BoundaryPicker value={points} onChange={setPoints} reference={reference} color={ZONE_COLORS[type]} error={errors.boundary} />
         </div>
         <div className="flex flex-col-reverse gap-2 pt-1 sm:flex-row sm:justify-end">
-          <Link href={`/ranches/${ranchId}`} className={btn.ghost}>
-            Cancel
+          <Link href={`/ranches/${ranchId}`} className={btn.ghost}>{t("Cancel")}
           </Link>
-          <button type="submit" className={btn.primary}>
-            Create zone
+          <button type="submit" className={btn.primary}>{t("Create zone")}
           </button>
         </div>
       </Card>
@@ -96,7 +97,7 @@ export function ZoneForm({ ranchId, ranchName, ranchBoundary, existing }: { ranc
         ) : (
           <Card className="p-4 text-xs text-muted sm:p-5">
             <p className="font-medium text-fg">POST /ranches/{"{id}"}/zones</p>
-            <p className="mt-1">Zone corners are checked against the ranch perimeter here as a convenience; the API is the source of truth.</p>
+            <p className="mt-1">{t("Zone corners are checked against the ranch perimeter here as a convenience; the API is the source of truth.")}</p>
           </Card>
         )}
       </div>

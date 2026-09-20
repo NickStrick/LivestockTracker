@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect } from "react";
-import { CircleMarker, MapContainer, Polygon, Polyline, TileLayer, useMap, useMapEvents } from "react-leaflet";
+import { CircleMarker, MapContainer, Polygon, Polyline, TileLayer, ZoomControl, useMap, useMapEvents } from "react-leaflet";
+import { useI18n } from "@/lib/i18n/client";
 import type { LatLngBoundsExpression, LatLngExpression } from "leaflet";
 import "leaflet/dist/leaflet.css";
 import type { Ring } from "@/lib/types";
@@ -56,10 +57,12 @@ export default function BoundaryEditor({
   locateSignal: number;
   onLocateError: () => void;
 }) {
+  const { t } = useI18n();
   const view = reference[0] ? { bounds: boundsOf(reference[0].ring), boundsOptions: { padding: [32, 32] as [number, number] } } : { center: [39.5, -98.35] as [number, number], zoom: 4 };
 
   return (
-    <MapContainer {...view} scrollWheelZoom={false} className={`map-${layer} h-full w-full cursor-crosshair`}>
+    <MapContainer {...view} scrollWheelZoom={false} zoomControl={false} className={`map-${layer} h-full w-full cursor-crosshair`}>
+      <ZoomControl zoomInTitle={t("Zoom in")} zoomOutTitle={t("Zoom out")} />
       <TileLayer key={layer} url={TILES[layer].url} attribution={TILES[layer].attr} />
       {reference.map((r, i) => (
         <Polygon

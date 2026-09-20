@@ -1,8 +1,11 @@
+"use client";
+
 import Link from "next/link";
 import clsx from "clsx";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowLeft } from "@fortawesome/free-solid-svg-icons";
 import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
+import { useI18n } from "@/lib/i18n/client";
 
 export function Card({ className, children }: { className?: string; children: React.ReactNode }) {
   return <section className={clsx("rounded-2xl border border-line bg-surface shadow-[0_1px_2px_rgba(0,0,0,0.04)]", className)}>{children}</section>;
@@ -39,20 +42,22 @@ export function Badge({ tone = "neutral", children, className }: { tone?: Tone; 
 
 export const STATUS_TONE: Record<string, Tone> = { active: "ok", sold: "info", deceased: "neutral" };
 export function StatusBadge({ status }: { status: string }) {
+  const { titleCase } = useI18n();
   return (
     <Badge tone={STATUS_TONE[status] ?? "neutral"}>
       <span className="size-1.5 rounded-full bg-current" />
-      {status[0].toUpperCase() + status.slice(1)}
+      {titleCase(status)}
     </Badge>
   );
 }
 
 export function PageHeader({ title, subtitle, actions, back }: { title: string; subtitle?: string; actions?: React.ReactNode; back?: { href: string; label: string } }) {
+  const { t } = useI18n();
   return (
     <div className="mb-5 sm:mb-6">
       {back && (
         <Link href={back.href} className="mb-2 inline-flex items-center gap-1.5 text-xs font-medium text-muted transition-colors hover:text-fg">
-          <FontAwesomeIcon icon={faArrowLeft} /> {back.label}
+          <FontAwesomeIcon icon={faArrowLeft} /> {t(back.label)}
         </Link>
       )}
       <div className="flex flex-wrap items-end justify-between gap-3">
@@ -65,12 +70,6 @@ export function PageHeader({ title, subtitle, actions, back }: { title: string; 
     </div>
   );
 }
-
-const BTN = "inline-flex items-center justify-center gap-2 rounded-xl px-3.5 py-2 text-sm font-medium transition active:scale-[0.98] disabled:opacity-50";
-export const btn = {
-  primary: clsx(BTN, "bg-primary text-primary-fg hover:opacity-90"),
-  ghost: clsx(BTN, "border border-line bg-surface hover:bg-surface2"),
-};
 
 export function Field({ label, value }: { label: string; value: React.ReactNode }) {
   return (
@@ -86,5 +85,6 @@ export function Empty({ children }: { children: React.ReactNode }) {
 }
 
 export function ProvisionalNote({ children }: { children: React.ReactNode }) {
-  return <span title={String(children)} className="rounded-md border border-dashed border-line px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-muted">mock</span>;
+  const { t } = useI18n();
+  return <span title={String(children)} className="rounded-md border border-dashed border-line px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-muted">{t("mock")}</span>;
 }

@@ -6,9 +6,10 @@ import clsx from "clsx";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faChevronRight, faSyringe } from "@fortawesome/free-solid-svg-icons";
 import type { VaccinationRow, VaccinationState } from "@/lib/types";
-import { fmtDate } from "@/lib/format";
+
 import { Badge, Card, CardHeader, type Tone } from "@/components/ui";
 import { VaccineBreakdownChart } from "@/components/charts/Charts";
+import { useI18n } from "@/lib/i18n/client";
 
 type Filter = "all" | VaccinationState;
 const SELECT = "h-10 rounded-xl border border-line bg-surface px-3 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20";
@@ -21,12 +22,14 @@ const STATE: Record<VaccinationState, { label: string; tone: Tone; text: string 
 };
 
 function StateBadge({ row }: { row: VaccinationRow }) {
+  const { t } = useI18n();
   const d = Math.abs(row.days);
-  const text = row.state === "overdue" ? `${d}d overdue` : row.state === "due_soon" ? `Due in ${d}d` : `Due in ${d}d`;
+  const text = row.state === "overdue" ? t("{n}d overdue", { n: d }) : t("Due in {n}d", { n: d });
   return <Badge tone={STATE[row.state].tone}>{text}</Badge>;
 }
 
 export function VaccinationsExplorer({ rows, ranches, initial = "overdue" }: { rows: VaccinationRow[]; ranches: { id: string; name: string }[]; initial?: Filter }) {
+  const { t, fmtDate } = useI18n();
   const [filter, setFilter] = useState<Filter>(initial);
   const [ranch, setRanch] = useState("");
   const [vaccine, setVaccine] = useState("");
@@ -70,7 +73,7 @@ export function VaccinationsExplorer({ rows, ranches, initial = "overdue" }: { r
             aria-pressed={filter === s}
             className={clsx("rounded-2xl border bg-surface p-3.5 text-left transition hover:border-primary/60 active:scale-[0.99] sm:p-4", filter === s ? "border-primary ring-2 ring-primary/20" : "border-line")}
           >
-            <p className="text-xs font-medium text-muted">{STATE[s].label}</p>
+            <p className="text-xs font-medium text-muted">{t(STATE[s].label)}</p>
             <p className={clsx("mt-1 text-2xl font-semibold tabular-nums", counts[s] && STATE[s].text)}>{counts[s]}</p>
           </button>
         ))}
@@ -78,7 +81,7 @@ export function VaccinationsExplorer({ rows, ranches, initial = "overdue" }: { r
 
       {breakdown.length > 0 && (
         <Card>
-          <CardHeader title="By vaccine" sub="Doses that need attention" icon={faSyringe} />
+          <CardHeader title={t("By vaccine")} sub={t("Doses that need attention")} icon={faSyringe} />
           <div className="p-3 sm:p-5">
             <VaccineBreakdownChart data={breakdown} />
           </div>
@@ -87,27 +90,26 @@ export function VaccinationsExplorer({ rows, ranches, initial = "overdue" }: { r
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-xs text-muted" aria-live="polite">
-          {visible.length > shown.length ? `Showing ${shown.length} of ${visible.length}` : `${visible.length} ${visible.length === 1 ? "dose" : "doses"}`}
+          {visible.length > shown.length ? t("Showing {a} of {b}", { a: shown.length, b: visible.length }) : visible.length === 1 ? t("1 dose") : t("{n} doses", { n: visible.length })}
           {filter !== "all" && (
             <>
               {" · "}
-              <button className="font-medium text-primary hover:underline" onClick={() => pick("all")}>
-                show all
+              <button className="font-medium text-primary hover:underline" onClick={() => pick("all")}>{t("show all")}
               </button>
             </>
           )}
         </p>
         <div className="flex w-full gap-2 sm:w-auto">
-          <select value={vaccine} onChange={(e) => { setVaccine(e.target.value); setLimit(PAGE); }} className={clsx(SELECT, "min-w-0 flex-1 sm:flex-none")} aria-label="Vaccine">
-            <option value="">All vaccines</option>
+          <select value={vaccine} onChange={(e) => { setVaccine(e.target.value); setLimit(PAGE); }} className={clsx(SELECT, "min-w-0 flex-1 sm:flex-none")} aria-label={t("Vaccine")}>
+            <option value="">{t("All vaccines")}</option>
             {vaccines.map((v) => (
               <option key={v} value={v}>
                 {v}
               </option>
             ))}
           </select>
-          <select value={ranch} onChange={(e) => { setRanch(e.target.value); setLimit(PAGE); }} className={clsx(SELECT, "min-w-0 flex-1 sm:flex-none")} aria-label="Ranch">
-            <option value="">All ranches</option>
+          <select value={ranch} onChange={(e) => { setRanch(e.target.value); setLimit(PAGE); }} className={clsx(SELECT, "min-w-0 flex-1 sm:flex-none")} aria-label={t("Ranch")}>
+            <option value="">{t("All ranches")}</option>
             {ranches.map((r) => (
               <option key={r.id} value={r.id}>
                 {r.name}
@@ -119,7 +121,7 @@ export function VaccinationsExplorer({ rows, ranches, initial = "overdue" }: { r
 
       {visible.length === 0 ? (
         <Card>
-          <p className="px-5 py-12 text-center text-sm text-muted">{filter === "overdue" ? "Nothing is overdue. Nice work." : "No doses match these filters."}</p>
+          <p className="px-5 py-12 text-center text-sm text-muted">{filter === "overdue" ? t("Nothing is overdue. Nice work.") : t("No doses match these filters.")}</p>
         </Card>
       ) : (
         <>
@@ -135,7 +137,7 @@ export function VaccinationsExplorer({ rows, ranches, initial = "overdue" }: { r
                     </div>
                     <p className="mt-0.5 truncate text-sm">{r.vaccine}</p>
                     <p className="truncate text-xs text-muted">
-                      Given {fmtDate(r.administered_at)} · due {fmtDate(r.next_due_at)} · {r.ranch_name}
+                      {t("Given {given} · due {due}", { given: fmtDate(r.administered_at), due: fmtDate(r.next_due_at) })} · {r.ranch_name}
                     </p>
                   </div>
                   <FontAwesomeIcon icon={faChevronRight} className="text-xs text-muted" />
@@ -152,7 +154,7 @@ export function VaccinationsExplorer({ rows, ranches, initial = "overdue" }: { r
                   <tr>
                     {["Animal", "Vaccine", "Last given", "Due", "Status", "Ranch", "Given by", ""].map((h) => (
                       <th key={h} className={clsx("px-4 py-3 font-medium", h === "Given by" && "hidden xl:table-cell")}>
-                        {h}
+                        {t(h)}
                       </th>
                     ))}
                   </tr>
@@ -174,7 +176,7 @@ export function VaccinationsExplorer({ rows, ranches, initial = "overdue" }: { r
                       <td className="px-4 py-3 text-muted">{r.ranch_name}</td>
                       <td className="hidden px-4 py-3 text-muted xl:table-cell">{r.administered_by}</td>
                       <td className="px-4 py-3 text-right">
-                        <Link href={`/animals/${r.animal_id}`} aria-label={`Open ${r.tag_id}`} className="text-muted group-hover:text-primary">
+                        <Link href={`/animals/${r.animal_id}`} aria-label={t("Open {tag}", { tag: r.tag_id })} className="text-muted group-hover:text-primary">
                           <FontAwesomeIcon icon={faChevronRight} className="text-xs" />
                         </Link>
                       </td>
@@ -188,7 +190,7 @@ export function VaccinationsExplorer({ rows, ranches, initial = "overdue" }: { r
           {visible.length > shown.length && (
             <div className="text-center">
               <button onClick={() => setLimit((l) => l + PAGE)} className="rounded-xl border border-line bg-surface px-5 py-2.5 text-sm font-medium transition hover:bg-surface2 active:scale-[0.98]">
-                Show {Math.min(PAGE, visible.length - shown.length)} more
+                {t("Show {n} more", { n: Math.min(PAGE, visible.length - shown.length) })}
               </button>
             </div>
           )}

@@ -6,12 +6,14 @@ import clsx from "clsx";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faLocationCrosshairs, faMap, faRotateLeft, faSatellite, faTrashCan } from "@fortawesome/free-solid-svg-icons";
 import { closeRing, ringAcres } from "@/lib/geo";
-import { fmtNum, titleCase } from "@/lib/format";
+
 import type { RefShape } from "./BoundaryEditor";
+import { useI18n } from "@/lib/i18n/client";
+import { MapLoading } from "@/components/ranches/MapLoading";
 
 const BoundaryEditor = dynamic(() => import("./BoundaryEditor"), {
   ssr: false,
-  loading: () => <div className="grid h-full place-items-center bg-surface2 text-sm text-muted">Loading map…</div>,
+  loading: () => <MapLoading />,
 });
 
 const CHIP = "inline-flex h-9 items-center gap-2 rounded-lg px-3 text-xs font-medium transition-colors";
@@ -30,6 +32,7 @@ export function BoundaryPicker({
   color?: string;
   error?: string;
 }) {
+  const { t, fmtNum, titleCase } = useI18n();
   const [layer, setLayer] = useState<"street" | "satellite">("satellite");
   const [locate, setLocate] = useState(0);
   const [locateFailed, setLocateFailed] = useState(false);
@@ -55,12 +58,12 @@ export function BoundaryPicker({
               }}
               className={clsx(CHIP, "border border-line text-muted hover:text-fg")}
             >
-              <FontAwesomeIcon icon={faLocationCrosshairs} /> My location
+              <FontAwesomeIcon icon={faLocationCrosshairs} /> {t("My location")}
             </button>
-            <button type="button" onClick={() => onChange(value.slice(0, -1))} disabled={!value.length} className={clsx(CHIP, "border border-line text-muted hover:text-fg disabled:opacity-40")} aria-label="Undo last point">
-              <FontAwesomeIcon icon={faRotateLeft} /> Undo
+            <button type="button" onClick={() => onChange(value.slice(0, -1))} disabled={!value.length} className={clsx(CHIP, "border border-line text-muted hover:text-fg disabled:opacity-40")} aria-label={t("Undo last point")}>
+              <FontAwesomeIcon icon={faRotateLeft} /> {t("Undo")}
             </button>
-            <button type="button" onClick={() => onChange([])} disabled={!value.length} className={clsx(CHIP, "border border-line text-muted hover:text-danger disabled:opacity-40")} aria-label="Clear all points">
+            <button type="button" onClick={() => onChange([])} disabled={!value.length} className={clsx(CHIP, "border border-line text-muted hover:text-danger disabled:opacity-40")} aria-label={t("Clear all points")}>
               <FontAwesomeIcon icon={faTrashCan} />
             </button>
           </div>
@@ -78,11 +81,12 @@ export function BoundaryPicker({
         </div>
       </div>
       <p className={clsx("mt-1.5 text-xs", error ? "text-danger" : "text-muted")}>
-        {error ??
-          (value.length === 0
-            ? "Tap the map to place each corner in order. You need at least 3 points."
-            : `${value.length} ${value.length === 1 ? "point" : "points"}${acres ? ` · about ${fmtNum(acres)} acres` : " · add at least 3"}`)}
-        {locateFailed && <span className="text-warn"> Couldn&apos;t get your location. Check browser permission.</span>}
+        {error
+          ? t(error)
+          : value.length === 0
+            ? t("Tap the map to place each corner in order. You need at least 3 points.")
+            : `${value.length === 1 ? t("1 point") : t("{n} points", { n: value.length })}${acres ? ` · ${t("about {n} acres", { n: fmtNum(acres) })}` : ` · ${t("add at least 3")}`}`}
+        {locateFailed && <span className="text-warn">{t("Couldn't get your location. Check browser permission.")}</span>}
       </p>
     </div>
   );

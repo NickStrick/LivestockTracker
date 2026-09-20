@@ -15,18 +15,22 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 import { getDashboard, listAlerts, listAllAuditEvents } from "@/lib/api";
-import { fmtNum } from "@/lib/format";
+
 import { Item, Reveal, Stagger } from "@/components/motion";
 import { HeroBanner } from "@/components/marketing/HeroBanner";
 import { WhatsNewLink } from "@/components/whatsnew/WhatsNewLink";
 import { ALERT_META, SEVERITY_META } from "@/components/alerts/alertMeta";
 import { LATEST_RELEASE } from "@/lib/releases";
 import clsx from "clsx";
+import { getI18n } from "@/lib/i18n/server";
 
-export const metadata: Metadata = {
-  title: { absolute: "Estancia | Livestock management for working ranches" },
-  description: "Herd records, GPS geofencing, health and vaccination tracking, and compliance paperwork in one app that works on your phone in the field.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const { t } = await getI18n();
+  return {
+    title: { absolute: t("Estancia | Livestock management for working ranches") },
+    description: t("Herd records, GPS geofencing, health and vaccination tracking, and compliance paperwork in one app that works on your phone in the field."),
+  };
+}
 
 const FEATURES: { icon: IconDefinition; title: string; body: string }[] = [
   { icon: faCow, title: "Herd records", body: "Tags, RFID and EID identifiers, lineage, weights and a full audit trail for every animal." },
@@ -44,6 +48,7 @@ const STEPS = [
 ];
 
 export default async function HomePage() {
+  const { t, fmtNum } = await getI18n();
   const [d, alerts, events] = await Promise.all([getDashboard(), listAlerts(), listAllAuditEvents()]);
   const acres = d.ranches.reduce((s, r) => s + r.area_acres, 0);
   const preview = alerts.slice(0, 3);
@@ -71,28 +76,26 @@ export default async function HomePage() {
           <Stagger className="max-w-xl">
             <Item>
               <WhatsNewLink className="group inline-flex items-center gap-2 rounded-full border border-line bg-surface/80 py-1 pl-1 pr-3 text-xs font-medium backdrop-blur transition hover:border-primary/60">
-                <span className="rounded-full bg-primary px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-primary-fg">New</span>
-                {LATEST_RELEASE.title}
+                <span className="rounded-full bg-primary px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-primary-fg">{t("New")}</span>
+                {t(LATEST_RELEASE.title)}
                 <FontAwesomeIcon icon={faArrowRight} className="text-[10px] text-muted transition-transform group-hover:translate-x-0.5" />
               </WhatsNewLink>
             </Item>
             <Item>
               <h1 className="mt-5 text-4xl font-semibold leading-[1.08] tracking-tight sm:text-5xl lg:text-[3.5rem]">
-                Know every animal. <span className="text-primary">Every acre.</span> Every load.
+                {t("Know every animal.")} <span className="text-primary">{t("Every acre.")}</span> {t("Every load.")}
               </h1>
             </Item>
             <Item>
-              <p className="mt-5 text-base leading-relaxed text-muted sm:text-lg">
-                Estancia keeps herd records, GPS boundaries, health work and compliance paperwork in one place, so nothing slips while you&apos;re out working.
+              <p className="mt-5 text-base leading-relaxed text-muted sm:text-lg">{t("Estancia keeps herd records, GPS boundaries, health work and compliance paperwork in one place, so nothing slips while you're out working.")}
               </p>
             </Item>
             <Item>
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-                <Link href="/dashboard" className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-primary px-6 text-sm font-semibold text-primary-fg shadow-lg shadow-primary/20 transition hover:opacity-90 active:scale-[0.98]">
-                  Open the dashboard <FontAwesomeIcon icon={faArrowRight} className="text-xs" />
+                <Link href="/dashboard" className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-primary px-6 text-sm font-semibold text-primary-fg shadow-lg shadow-primary/20 transition hover:opacity-90 active:scale-[0.98]">{t("Open the dashboard")} <FontAwesomeIcon icon={faArrowRight} className="text-xs" />
                 </Link>
                 <WhatsNewLink className="inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-line bg-surface px-6 text-sm font-semibold transition hover:bg-surface2 active:scale-[0.98]">
-                  <FontAwesomeIcon icon={faWandMagicSparkles} className="text-primary" /> What&apos;s new
+                  <FontAwesomeIcon icon={faWandMagicSparkles} className="text-primary" /> {t("What's new")}
                 </WhatsNewLink>
               </div>
             </Item>
@@ -103,8 +106,8 @@ export default async function HomePage() {
             <div className="rounded-3xl border border-line bg-surface p-4 shadow-2xl shadow-black/10 sm:p-5">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs text-muted">Bartlett Cattle Co.</p>
-                  <p className="text-base font-semibold">Today on the ranch</p>
+                  <p className="text-xs text-muted">{t("Bartlett Cattle Co.")}</p>
+                  <p className="text-base font-semibold">{t("Today on the ranch")}</p>
                 </div>
                 <span className="grid size-9 place-items-center rounded-xl bg-primary/15 text-primary">
                   <FontAwesomeIcon icon={faCow} />
@@ -117,7 +120,7 @@ export default async function HomePage() {
                   { l: "Outside fence", v: String(d.kpis.breaches_7d), c: "text-danger" },
                 ].map((k) => (
                   <div key={k.l} className="rounded-2xl bg-surface2 p-3">
-                    <p className="text-[10px] font-medium text-muted sm:text-[11px]">{k.l}</p>
+                    <p className="text-[10px] font-medium text-muted sm:text-[11px]">{t(k.l)}</p>
                     <p className={clsx("mt-0.5 text-xl font-semibold tabular-nums", k.c)}>{k.v}</p>
                   </div>
                 ))}
@@ -130,9 +133,9 @@ export default async function HomePage() {
                     </span>
                     <div className="min-w-0">
                       <p className="truncate text-sm font-medium">
-                        <span className={clsx("text-primary", ALERT_META[a.kind].mono && "font-mono")}>{a.subject}</span> · {a.title}
+                        <span className={clsx("text-primary", ALERT_META[a.kind].mono && "font-mono")}>{a.subject}</span> · {t(a.title)}
                       </p>
-                      <p className="truncate text-xs text-muted">{a.detail}</p>
+                      <p className="truncate text-xs text-muted">{t(a.detail)}</p>
                     </div>
                   </div>
                 ))}
@@ -143,9 +146,9 @@ export default async function HomePage() {
                 <FontAwesomeIcon icon={faTriangleExclamation} />
               </span>
               <p className="text-xs">
-                <b>Boundary alert</b>
+                <b>{t("Boundary alert")}</b>
                 <br />
-                <span className="text-muted">{d.kpis.breaches_7d} animals outside</span>
+                <span className="text-muted">{t("{n} animals outside", { n: d.kpis.breaches_7d })}</span>
               </p>
             </div>
           </Reveal>
@@ -163,7 +166,7 @@ export default async function HomePage() {
           ].map((s) => (
             <Reveal key={s.l} className="text-center">
               <dd className="text-3xl font-semibold tracking-tight tabular-nums sm:text-4xl">{s.v}</dd>
-              <dt className="mt-1 text-sm text-muted">{s.l}</dt>
+              <dt className="mt-1 text-sm text-muted">{t(s.l)}</dt>
             </Reveal>
           ))}
         </dl>
@@ -172,9 +175,9 @@ export default async function HomePage() {
       {/* Features */}
       <section id="features" className="mx-auto max-w-6xl scroll-mt-20 px-4 py-16 sm:px-6 sm:py-24">
         <Reveal className="max-w-2xl">
-          <p className="text-sm font-semibold text-primary">Everything in one place</p>
-          <h2 className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">The whole operation, from tag to truck</h2>
-          <p className="mt-3 text-muted">Replace the notebooks, spreadsheets and folder of certificates with one record that stays current.</p>
+          <p className="text-sm font-semibold text-primary">{t("Everything in one place")}</p>
+          <h2 className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">{t("The whole operation, from tag to truck")}</h2>
+          <p className="mt-3 text-muted">{t("Replace the notebooks, spreadsheets and folder of certificates with one record that stays current.")}</p>
         </Reveal>
         <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {FEATURES.map((f, i) => (
@@ -183,8 +186,8 @@ export default async function HomePage() {
                 <span className="grid size-11 place-items-center rounded-xl bg-primary/15 text-lg text-primary">
                   <FontAwesomeIcon icon={f.icon} />
                 </span>
-                <h3 className="mt-4 text-base font-semibold">{f.title}</h3>
-                <p className="mt-1.5 text-sm leading-relaxed text-muted">{f.body}</p>
+                <h3 className="mt-4 text-base font-semibold">{t(f.title)}</h3>
+                <p className="mt-1.5 text-sm leading-relaxed text-muted">{t(f.body)}</p>
               </div>
             </Reveal>
           ))}
@@ -195,16 +198,16 @@ export default async function HomePage() {
       <section id="how" className="scroll-mt-20 border-t border-line bg-surface/60">
         <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-24">
           <Reveal className="max-w-2xl">
-            <p className="text-sm font-semibold text-primary">How it works</p>
-            <h2 className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">Up and running in an afternoon</h2>
+            <p className="text-sm font-semibold text-primary">{t("How it works")}</p>
+            <h2 className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">{t("Up and running in an afternoon")}</h2>
           </Reveal>
           <div className="mt-10 grid gap-4 md:grid-cols-3">
             {STEPS.map((s, i) => (
               <Reveal key={s.n} delay={i * 0.08}>
                 <div className="h-full rounded-2xl border border-line bg-canvas p-5 sm:p-6">
                   <span className="grid size-9 place-items-center rounded-full bg-primary text-sm font-bold text-primary-fg">{s.n}</span>
-                  <h3 className="mt-4 text-base font-semibold">{s.title}</h3>
-                  <p className="mt-1.5 text-sm leading-relaxed text-muted">{s.body}</p>
+                  <h3 className="mt-4 text-base font-semibold">{t(s.title)}</h3>
+                  <p className="mt-1.5 text-sm leading-relaxed text-muted">{t(s.body)}</p>
                 </div>
               </Reveal>
             ))}
@@ -217,14 +220,13 @@ export default async function HomePage() {
         <Reveal>
           <div className="relative overflow-hidden rounded-3xl bg-primary px-6 py-12 text-center text-primary-fg sm:px-12 sm:py-16">
             <div aria-hidden className="absolute -right-16 -top-16 size-64 rounded-full bg-white/10 blur-2xl" />
-            <h2 className="relative text-3xl font-semibold tracking-tight sm:text-4xl">See it with a working ranch</h2>
-            <p className="relative mx-auto mt-3 max-w-lg text-sm opacity-90 sm:text-base">Explore the dashboard, map and compliance tools with sample data. No account needed.</p>
+            <h2 className="relative text-3xl font-semibold tracking-tight sm:text-4xl">{t("See it with a working ranch")}</h2>
+            <p className="relative mx-auto mt-3 max-w-lg text-sm opacity-90 sm:text-base">{t("Explore the dashboard, map and compliance tools with sample data. No account needed.")}</p>
             <div className="relative mt-7 flex flex-col justify-center gap-3 sm:flex-row">
-              <Link href="/dashboard" className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-white px-6 text-sm font-semibold text-black transition hover:bg-white/90 active:scale-[0.98]">
-                Open the dashboard <FontAwesomeIcon icon={faArrowRight} className="text-xs" />
+              <Link href="/dashboard" className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-white px-6 text-sm font-semibold text-black transition hover:bg-white/90 active:scale-[0.98]">{t("Open the dashboard")} <FontAwesomeIcon icon={faArrowRight} className="text-xs" />
               </Link>
               <Link href="/compliance" className="inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-white/40 px-6 text-sm font-semibold transition hover:bg-white/10 active:scale-[0.98]">
-                <FontAwesomeIcon icon={faDna} /> Explore compliance
+                <FontAwesomeIcon icon={faDna} /> {t("Explore compliance")}
               </Link>
             </div>
           </div>

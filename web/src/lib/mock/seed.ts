@@ -22,7 +22,8 @@ import type {
 } from "../types";
 import { pointInRing } from "../geo";
 
-export const MOCK_NOW = new Date("2026-09-19T15:00:00Z");
+import { MOCK_NOW } from "../clock";
+export { MOCK_NOW };
 const DAY = 86_400_000;
 
 function mulberry32(seed: number) {

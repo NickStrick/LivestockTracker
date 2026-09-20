@@ -4,17 +4,21 @@ import Link from "next/link";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faClockRotateLeft, faPlus } from "@fortawesome/free-solid-svg-icons";
 import { getRanch, getRanchAuditTrail, listAnimals, listRanchPositions, listZones } from "@/lib/api";
-import { fmtNum } from "@/lib/format";
+
 import { AuditTimeline } from "@/components/AuditTimeline";
 import { RanchView } from "@/components/ranches/RanchView";
-import { Badge, Card, CardHeader, PageHeader, btn } from "@/components/ui";
+import { Badge, Card, CardHeader, PageHeader } from "@/components/ui";
+import { btn } from "@/components/ui-styles";
+import { getI18n } from "@/lib/i18n/server";
 
 export async function generateMetadata({ params }: PageProps<"/ranches/[id]">): Promise<Metadata> {
+  const { t } = await getI18n();
   const r = await getRanch((await params).id);
-  return { title: r ? r.name : "Ranch" };
+  return { title: r ? r.name : t("Ranch") };
 }
 
 export default async function RanchPage({ params }: PageProps<"/ranches/[id]">) {
+  const { t, fmtNum } = await getI18n();
   const { id } = await params;
   const ranch = await getRanch(id);
   if (!ranch) notFound();
@@ -32,12 +36,12 @@ export default async function RanchPage({ params }: PageProps<"/ranches/[id]">) 
       <PageHeader
         title={ranch.name}
         back={{ href: "/ranches", label: "Ranches" }}
-        subtitle={`${fmtNum(ranch.area_acres)} acres · ${ranch.head_count} head · ${ranch.zone_count} active zones`}
+        subtitle={t("{acres} acres · {head} head · {zones} active zones", { acres: fmtNum(ranch.area_acres), head: ranch.head_count, zones: ranch.zone_count })}
         actions={
           <>
-            {ranch.breach_count > 0 ? <Badge tone="danger">{ranch.breach_count} outside boundary</Badge> : <Badge tone="ok">All animals inside</Badge>}
+            {ranch.breach_count > 0 ? <Badge tone="danger">{t("{n} outside boundary", { n: ranch.breach_count })}</Badge> : <Badge tone="ok">{t("All animals inside")}</Badge>}
             <Link href={`/ranches/${id}/zones/new`} className={btn.ghost}>
-              <FontAwesomeIcon icon={faPlus} /> Add zone
+              <FontAwesomeIcon icon={faPlus} /> {t("Add zone")}
             </Link>
           </>
         }
@@ -48,7 +52,7 @@ export default async function RanchPage({ params }: PageProps<"/ranches/[id]">) 
         animals={positions.map((p) => ({ animal_id: p.animal_id, tag_id: tag.get(p.animal_id) ?? p.animal_id, lat: p.lat, lon: p.lon, inside_boundary: p.inside_boundary }))}
       />
       <Card className="mt-4 sm:mt-6">
-        <CardHeader title="Ranch audit trail" icon={faClockRotateLeft} sub="Latest 15 events" />
+        <CardHeader title={t("Ranch audit trail")} icon={faClockRotateLeft} sub={t("Latest 15 events")} />
         <AuditTimeline events={audit.slice(0, 15)} tags={Object.fromEntries(tag)} compact />
       </Card>
     </>

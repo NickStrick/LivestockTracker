@@ -10,6 +10,7 @@ import { useAlerts } from "@/components/alerts/AlertsProvider";
 import { useWhatsNew } from "@/components/whatsnew/WhatsNewProvider";
 import { LATEST_RELEASE } from "@/lib/releases";
 import { useLocalSet } from "@/lib/useLocalSet";
+import { useI18n } from "@/lib/i18n/client";
 
 interface Banner {
   /** Changes whenever the message changes, so a dismissed banner returns for new information. */
@@ -28,6 +29,7 @@ const hash = (s: string) => {
 
 /** One banner at a time: unread critical alerts come first, then release news. A dismissed banner falls through to the next. */
 export function AnnouncementBanner() {
+  const { t } = useI18n();
   const { alerts, unread, ready: alertsReady } = useAlerts();
   const { open, hasUnseen } = useWhatsNew();
   const dismissed = useLocalSet("estancia:dismissed-banners");
@@ -46,21 +48,21 @@ export function AnnouncementBanner() {
       icon: faTriangleExclamation,
       text: allBreaches ? (
         <>
-          <b>{n === 1 ? "1 animal is" : `${n} animals are`} outside the ranch boundary.</b>{" "}
+          <b>{n === 1 ? t("1 animal is outside the ranch boundary.") : t("{n} animals are outside the ranch boundary.", { n })}</b>{" "}
           <span className="hidden sm:inline">
             {n === 1 ? critical[0].subject : critical.slice(0, 3).map((a) => a.subject).join(", ")}
-            {n > 3 && ` and ${n - 3} more`}
+            {n > 3 && ` ${t("and {n} more", { n: n - 3 })}`}
           </span>
         </>
       ) : (
         <>
-          <b>{n} critical {n === 1 ? "alert needs" : "alerts need"} attention.</b>{" "}
+          <b>{n === 1 ? t("1 critical alert needs attention.") : t("{n} critical alerts need attention.", { n })}</b>{" "}
           <span className="hidden sm:inline">
-            {critical[0].subject}: {critical[0].title.toLowerCase()}
+            {critical[0].subject}: {t(critical[0].title).toLowerCase()}
           </span>
         </>
       ),
-      action: { label: "Review", href: allBreaches ? "/breaches" : n === 1 ? critical[0].href : "/alerts" },
+      action: { label: t("Review"), href: allBreaches ? "/breaches" : n === 1 ? critical[0].href : "/alerts" },
     });
   }
   if (hasUnseen) {
@@ -70,10 +72,10 @@ export function AnnouncementBanner() {
       icon: faWandMagicSparkles,
       text: (
         <>
-          <b>New in Estancia {LATEST_RELEASE.version}:</b> <span className="hidden sm:inline">{LATEST_RELEASE.title}</span>
+          <b>{t("New in Estancia {version}:", { version: LATEST_RELEASE.version })}</b> <span className="hidden sm:inline">{t(LATEST_RELEASE.title)}</span>
         </>
       ),
-      action: { label: "What's new", onClick: open },
+      action: { label: t("What's new"), onClick: open },
     });
   }
 
@@ -95,7 +97,7 @@ export function AnnouncementBanner() {
                 {show.action.label}
               </button>
             )}
-            <button onClick={() => dismissed.add(show.key)} aria-label="Dismiss" className="grid size-10 shrink-0 place-items-center rounded-lg transition hover:bg-white/20">
+            <button onClick={() => dismissed.add(show.key)} aria-label={t("Dismiss")} className="grid size-10 shrink-0 place-items-center rounded-lg transition hover:bg-white/20">
               <FontAwesomeIcon icon={faXmark} />
             </button>
           </div>

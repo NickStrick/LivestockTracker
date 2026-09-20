@@ -7,9 +7,10 @@ import { motion } from "framer-motion";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faChevronRight, faFileLines, faPaperclip, faTriangleExclamation, faTruck } from "@fortawesome/free-solid-svg-icons";
 import type { ComplianceSummary, DocumentView, MovementView } from "@/lib/types";
-import { DOC_TYPE_LABEL, fmtDate, fmtSize, titleCase } from "@/lib/format";
+import { DOC_TYPE_LABEL } from "@/lib/format";
 import { Badge, Card } from "@/components/ui";
 import { DirectionBadge, DocStatusBadge, MovementStatusBadge } from "./badges";
+import { useI18n } from "@/lib/i18n/client";
 
 export type ComplianceTab = "movements" | "documents";
 const SELECT = "h-10 rounded-xl border border-line bg-surface px-3 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20";
@@ -43,14 +44,15 @@ export function ComplianceExplorer({
   initialTab?: ComplianceTab;
   initialFilter?: string;
 }) {
+  const { t, fmtDate, fmtSize, titleCase } = useI18n();
   const [tab, setTab] = useState<ComplianceTab>(initialTab);
   const [filter, setFilter] = useState(initialFilter);
   const [ranch, setRanch] = useState("");
   const [docType, setDocType] = useState("");
   const ranchName = useMemo(() => Object.fromEntries(ranches.map((r) => [r.id, r.name])), [ranches]);
 
-  const go = (t: ComplianceTab, f = "all") => {
-    setTab(t);
+  const go = (tk: ComplianceTab, f = "all") => {
+    setTab(tk);
     setFilter(f);
   };
 
@@ -68,43 +70,43 @@ export function ComplianceExplorer({
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Kpi label="Movements, last 30 days" value={summary.movements_30d} tone="" active={tab === "movements" && filter === "all"} onClick={() => go("movements")} sub={`${summary.pending_movements} upcoming`} />
-        <Kpi label="Movement issues" value={summary.flagged_movements} tone={summary.flagged_movements ? "text-danger" : ""} active={tab === "movements" && filter === "flagged"} onClick={() => go("movements", "flagged")} sub="Missing or expiring CVI" />
-        <Kpi label="Expiring documents" value={summary.docs_expiring} tone={summary.docs_expiring ? "text-warn" : ""} active={tab === "documents" && filter === "expiring"} onClick={() => go("documents", "expiring")} sub="Within 30 days" />
-        <Kpi label="Expired documents" value={summary.docs_expired} tone={summary.docs_expired ? "text-danger" : ""} active={tab === "documents" && filter === "expired"} onClick={() => go("documents", "expired")} sub={`of ${summary.docs_total} on file`} />
+        <Kpi label={t("Movements, last 30 days")} value={summary.movements_30d} tone="" active={tab === "movements" && filter === "all"} onClick={() => go("movements")} sub={t("{n} upcoming", { n: summary.pending_movements })} />
+        <Kpi label={t("Movement issues")} value={summary.flagged_movements} tone={summary.flagged_movements ? "text-danger" : ""} active={tab === "movements" && filter === "flagged"} onClick={() => go("movements", "flagged")} sub={t("Missing or expiring CVI")} />
+        <Kpi label={t("Expiring documents")} value={summary.docs_expiring} tone={summary.docs_expiring ? "text-warn" : ""} active={tab === "documents" && filter === "expiring"} onClick={() => go("documents", "expiring")} sub={t("Within 30 days")} />
+        <Kpi label={t("Expired documents")} value={summary.docs_expired} tone={summary.docs_expired ? "text-danger" : ""} active={tab === "documents" && filter === "expired"} onClick={() => go("documents", "expired")} sub={t("of {n} on file", { n: summary.docs_total })} />
       </div>
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="inline-flex gap-1 rounded-xl border border-line bg-surface p-1">
-          {(["movements", "documents"] as const).map((t) => (
-            <button key={t} onClick={() => go(t)} className={clsx("relative rounded-lg px-4 py-1.5 text-sm font-medium transition-colors", tab === t ? "text-primary-fg" : "text-muted hover:text-fg")}>
-              {tab === t && <motion.span layoutId="compliance-tab" className="absolute inset-0 rounded-lg bg-primary" transition={{ type: "spring", stiffness: 500, damping: 38 }} />}
+          {(["movements", "documents"] as const).map((tk) => (
+            <button key={tk} onClick={() => go(tk)} className={clsx("relative rounded-lg px-4 py-1.5 text-sm font-medium transition-colors", tab === tk ? "text-primary-fg" : "text-muted hover:text-fg")}>
+              {tab === tk && <motion.span layoutId="compliance-tab" className="absolute inset-0 rounded-lg bg-primary" transition={{ type: "spring", stiffness: 500, damping: 38 }} />}
               <span className="relative inline-flex items-center gap-2">
-                <FontAwesomeIcon icon={t === "movements" ? faTruck : faFileLines} /> {titleCase(t)}
+                <FontAwesomeIcon icon={tk === "movements" ? faTruck : faFileLines} /> {titleCase(tk)}
               </span>
             </button>
           ))}
         </div>
         <div className="flex flex-wrap gap-2">
-          <select value={filter} onChange={(e) => setFilter(e.target.value)} className={SELECT} aria-label="Status">
+          <select value={filter} onChange={(e) => setFilter(e.target.value)} className={SELECT} aria-label={t("Status")}>
             {filters.map((f) => (
               <option key={f} value={f}>
-                {f === "all" ? "Any status" : titleCase(f)}
+                {f === "all" ? t("Any status") : titleCase(f)}
               </option>
             ))}
           </select>
           {tab === "documents" && (
-            <select value={docType} onChange={(e) => setDocType(e.target.value)} className={SELECT} aria-label="Document type">
-              <option value="">Any type</option>
+            <select value={docType} onChange={(e) => setDocType(e.target.value)} className={SELECT} aria-label={t("Document type")}>
+              <option value="">{t("Any type")}</option>
               {Object.entries(DOC_TYPE_LABEL).map(([k, v]) => (
                 <option key={k} value={k}>
-                  {v}
+                  {t(v)}
                 </option>
               ))}
             </select>
           )}
-          <select value={ranch} onChange={(e) => setRanch(e.target.value)} className={SELECT} aria-label="Ranch">
-            <option value="">All ranches</option>
+          <select value={ranch} onChange={(e) => setRanch(e.target.value)} className={SELECT} aria-label={t("Ranch")}>
+            <option value="">{t("All ranches")}</option>
             {ranches.map((r) => (
               <option key={r.id} value={r.id}>
                 {r.name}
@@ -117,7 +119,7 @@ export function ComplianceExplorer({
       {tab === "movements" ? (
         moves.length === 0 ? (
           <Card>
-            <p className="px-5 py-12 text-center text-sm text-muted">No movements match these filters.</p>
+            <p className="px-5 py-12 text-center text-sm text-muted">{t("No movements match these filters.")}</p>
           </Card>
         ) : (
           <ul className="grid gap-3">
@@ -144,10 +146,10 @@ export function ComplianceExplorer({
                       <Badge tone={m.kind === "interstate" ? "info" : "neutral"}>{titleCase(m.kind)}</Badge>
                       {m.document_ids.length > 0 ? (
                         <Badge tone="ok">
-                          <FontAwesomeIcon icon={faPaperclip} /> {m.document_ids.length} {m.document_ids.length === 1 ? "document" : "documents"}
+                          <FontAwesomeIcon icon={faPaperclip} /> {m.document_ids.length === 1 ? t("1 document") : t("{n} documents", { n: m.document_ids.length })}
                         </Badge>
                       ) : (
-                        <Badge>No documents</Badge>
+                        <Badge>{t("No documents")}</Badge>
                       )}
                       <span className="mx-1 hidden h-4 w-px bg-line sm:block" />
                       {m.animal_ids.slice(0, 4).map((id) => (
@@ -155,11 +157,11 @@ export function ComplianceExplorer({
                           {tags[id]}
                         </span>
                       ))}
-                      {m.animal_ids.length > 4 && <span className="text-[11px] text-muted">+{m.animal_ids.length - 4} more</span>}
+                      {m.animal_ids.length > 4 && <span className="text-[11px] text-muted">{t("+{n} more", { n: m.animal_ids.length - 4 })}</span>}
                     </div>
                     {m.issues.length > 0 && (
                       <p className="mt-3 flex items-start gap-2 rounded-lg bg-danger/10 px-3 py-2 text-xs text-danger">
-                        <FontAwesomeIcon icon={faTriangleExclamation} className="mt-0.5" /> {m.issues.join(". ")}
+                        <FontAwesomeIcon icon={faTriangleExclamation} className="mt-0.5" /> {m.issues.map((i) => t(i)).join(". ")}
                       </p>
                     )}
                   </Card>
@@ -170,7 +172,7 @@ export function ComplianceExplorer({
         )
       ) : docs.length === 0 ? (
         <Card>
-          <p className="px-5 py-12 text-center text-sm text-muted">No documents match these filters.</p>
+          <p className="px-5 py-12 text-center text-sm text-muted">{t("No documents match these filters.")}</p>
         </Card>
       ) : (
         <Card className="divide-y divide-line overflow-hidden">
@@ -182,12 +184,12 @@ export function ComplianceExplorer({
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-medium">{d.title}</p>
                 <p className="truncate text-xs text-muted">
-                  {DOC_TYPE_LABEL[d.doc_type]} · {ranchName[d.ranch_id]} · {d.animal_ids.length} {d.animal_ids.length === 1 ? "animal" : "animals"} · {fmtSize(d.size_kb)}
+                  {t(DOC_TYPE_LABEL[d.doc_type])} · {ranchName[d.ranch_id]} · {d.animal_ids.length === 1 ? t("1 animal") : t("{n} animals", { n: d.animal_ids.length })} · {fmtSize(d.size_kb)}
                 </p>
               </div>
               <div className="hidden text-right sm:block">
                 <DocStatusBadge status={d.status} daysLeft={d.days_left} />
-                <p className="mt-1 text-[11px] text-muted">{d.expires_at ? `Expires ${fmtDate(d.expires_at)}` : `Issued ${fmtDate(d.issued_at)}`}</p>
+                <p className="mt-1 text-[11px] text-muted">{d.expires_at ? t("Expires {date}", { date: fmtDate(d.expires_at) }) : t("Issued {date}", { date: fmtDate(d.issued_at) })}</p>
               </div>
               <div className="sm:hidden">
                 <DocStatusBadge status={d.status} daysLeft={d.days_left} />

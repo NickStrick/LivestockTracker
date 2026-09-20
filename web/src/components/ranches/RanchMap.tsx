@@ -2,11 +2,12 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { CircleMarker, MapContainer, Polygon, TileLayer, Tooltip, useMap } from "react-leaflet";
+import { CircleMarker, MapContainer, Polygon, TileLayer, Tooltip, ZoomControl, useMap } from "react-leaflet";
 import type { LatLngBoundsExpression, LatLngExpression } from "leaflet";
 import "leaflet/dist/leaflet.css";
 import type { Ring, ZoneOut } from "@/lib/types";
 import { TILES, ZONE_COLORS, type MapAnimal } from "./zones";
+import { useI18n } from "@/lib/i18n/client";
 
 const flip = (ring: Ring): LatLngExpression[] => ring.map(([lon, lat]) => [lat, lon]);
 const boundsOf = (ring: Ring): LatLngBoundsExpression => {
@@ -53,6 +54,7 @@ export default function RanchMap({
   /** animal_id to emphasise and fly to. */
   highlight?: string | null;
 }) {
+  const { t } = useI18n();
   const router = useRouter();
   const focus = zones.find((z) => z.id === selectedZone)?.boundary ?? null;
   const marked = animals.find((a) => a.animal_id === highlight) ?? null;
@@ -60,7 +62,8 @@ export default function RanchMap({
   const fitRing: Ring = [...boundary, ...animals.map((a) => [a.lon, a.lat])];
 
   return (
-    <MapContainer bounds={boundsOf(fitRing)} boundsOptions={{ padding: [24, 24] }} scrollWheelZoom={false} className={`map-${layer} h-full w-full`} attributionControl>
+    <MapContainer bounds={boundsOf(fitRing)} boundsOptions={{ padding: [24, 24] }} scrollWheelZoom={false} zoomControl={false} className={`map-${layer} h-full w-full`} attributionControl>
+      <ZoomControl zoomInTitle={t("Zoom in")} zoomOutTitle={t("Zoom out")} />
       <TileLayer key={layer} url={TILES[layer].url} attribution={TILES[layer].attr} />
       <Polygon positions={flip(boundary)} pathOptions={{ color: "#ffffff", weight: 3, fillOpacity: 0, dashArray: "8 6" }} />
       {zones.map((z) => {
@@ -91,7 +94,7 @@ export default function RanchMap({
           >
             <Tooltip>
               {a.tag_id}
-              {a.inside_boundary ? "" : " (outside boundary)"}
+              {a.inside_boundary ? "" : ` ${t("(outside boundary)")}`}
             </Tooltip>
           </CircleMarker>
         ))}

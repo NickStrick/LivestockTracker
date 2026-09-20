@@ -7,8 +7,9 @@ import { motion } from "framer-motion";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faChevronRight, faMagnifyingGlass, faMars, faVenus, faXmark } from "@fortawesome/free-solid-svg-icons";
 import type { AnimalOut } from "@/lib/types";
-import { ageLabel, titleCase } from "@/lib/format";
+
 import { Badge, Card, StatusBadge } from "@/components/ui";
+import { useI18n } from "@/lib/i18n/client";
 
 const STATUSES = ["all", "active", "sold", "deceased"] as const;
 const PAGE = 20;
@@ -21,6 +22,7 @@ function GenderIcon({ g }: { g: string | null }) {
 }
 
 export function AnimalsExplorer({ animals, ranches }: { animals: AnimalOut[]; ranches: { id: string; name: string }[] }) {
+  const { t, ageLabel, titleCase } = useI18n();
   const [q, setQ] = useState("");
   const [status, setStatus] = useState<(typeof STATUSES)[number]>("active");
   const [ranch, setRanch] = useState("");
@@ -58,24 +60,24 @@ export function AnimalsExplorer({ animals, ranches }: { animals: AnimalOut[]; ra
       <div className="grid gap-2 sm:grid-cols-[1fr_auto_auto]">
         <label className="relative block">
           <FontAwesomeIcon icon={faMagnifyingGlass} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-muted" />
-          <input value={q} onChange={(e) => reset(setQ)(e.target.value)} placeholder="Search tag, registry #, color, breed" className={clsx(INPUT, "w-full pl-10 pr-10")} inputMode="search" />
+          <input value={q} onChange={(e) => reset(setQ)(e.target.value)} placeholder={t("Search tag, registry #, color, breed")} className={clsx(INPUT, "w-full pl-10 pr-10")} inputMode="search" />
           {q && (
-            <button onClick={() => reset(setQ)("")} aria-label="Clear search" className="absolute right-2 top-1/2 grid size-8 -translate-y-1/2 place-items-center rounded-lg text-muted hover:text-fg">
+            <button onClick={() => reset(setQ)("")} aria-label={t("Clear search")} className="absolute right-2 top-1/2 grid size-8 -translate-y-1/2 place-items-center rounded-lg text-muted hover:text-fg">
               <FontAwesomeIcon icon={faXmark} />
             </button>
           )}
         </label>
         <div className="grid grid-cols-2 gap-2 sm:contents">
-          <select value={ranch} onChange={(e) => reset(setRanch)(e.target.value)} className={INPUT} aria-label="Ranch">
-            <option value="">All ranches</option>
+          <select value={ranch} onChange={(e) => reset(setRanch)(e.target.value)} className={INPUT} aria-label={t("Ranch")}>
+            <option value="">{t("All ranches")}</option>
             {ranches.map((r) => (
               <option key={r.id} value={r.id}>
                 {r.name}
               </option>
             ))}
           </select>
-          <select value={gender} onChange={(e) => reset(setGender)(e.target.value)} className={INPUT} aria-label="Gender">
-            <option value="">Any gender</option>
+          <select value={gender} onChange={(e) => reset(setGender)(e.target.value)} className={INPUT} aria-label={t("Gender")}>
+            <option value="">{t("Any gender")}</option>
             {["cow", "heifer", "steer", "bull"].map((g) => (
               <option key={g} value={g}>
                 {titleCase(g)}
@@ -103,7 +105,7 @@ export function AnimalsExplorer({ animals, ranches }: { animals: AnimalOut[]; ra
       </div>
 
       <p className="text-xs text-muted" aria-live="polite">
-        {rows.length > shown.length ? `Showing ${shown.length} of ${rows.length}` : `${rows.length} ${rows.length === 1 ? "animal" : "animals"}`}
+        {rows.length > shown.length ? t("Showing {a} of {b}", { a: shown.length, b: rows.length }) : rows.length === 1 ? t("1 animal") : t("{n} animals", { n: rows.length })}
         {filtered && (
           <>
             {" · "}
@@ -116,8 +118,7 @@ export function AnimalsExplorer({ animals, ranches }: { animals: AnimalOut[]; ra
                 setStatus("active");
                 setLimit(PAGE);
               }}
-            >
-              reset filters
+            >{t("reset filters")}
             </button>
           </>
         )}
@@ -125,7 +126,7 @@ export function AnimalsExplorer({ animals, ranches }: { animals: AnimalOut[]; ra
 
       {rows.length === 0 ? (
         <Card>
-          <p className="px-5 py-12 text-center text-sm text-muted">No animals match these filters.</p>
+          <p className="px-5 py-12 text-center text-sm text-muted">{t("No animals match these filters.")}</p>
         </Card>
       ) : (
         <>
@@ -143,7 +144,7 @@ export function AnimalsExplorer({ animals, ranches }: { animals: AnimalOut[]; ra
                       <StatusBadge status={a.status} />
                     </div>
                     <p className="mt-0.5 truncate text-xs text-muted">
-                      {[a.gender && titleCase(a.gender), a.color, ageLabel(a.dob)].filter(Boolean).join(" · ")}
+                      {[a.gender && titleCase(a.gender), a.color && t(a.color), ageLabel(a.dob)].filter(Boolean).join(" · ")}
                     </p>
                     <p className="truncate text-xs text-muted">{ranchName[a.ranch_id]}</p>
                   </div>
@@ -161,7 +162,7 @@ export function AnimalsExplorer({ animals, ranches }: { animals: AnimalOut[]; ra
                   <tr>
                     {["Tag", "Status", "Gender", "Color", "Age", "Ranch", "Registry", ""].map((h) => (
                       <th key={h} className={clsx("px-4 py-3 font-medium", h === "Registry" && "hidden lg:table-cell")}>
-                        {h}
+                        {t(h)}
                       </th>
                     ))}
                   </tr>
@@ -183,14 +184,14 @@ export function AnimalsExplorer({ animals, ranches }: { animals: AnimalOut[]; ra
                           {a.gender ? titleCase(a.gender) : "-"}
                         </span>
                       </td>
-                      <td className="px-4 py-3">{a.color ?? "-"}</td>
+                      <td className="px-4 py-3">{a.color ? t(a.color) : "-"}</td>
                       <td className="px-4 py-3 tabular-nums">{ageLabel(a.dob)}</td>
                       <td className="px-4 py-3 text-muted">{ranchName[a.ranch_id]}</td>
                       <td className="hidden px-4 py-3 lg:table-cell">
                         {a.registry_number ? <Badge>{a.registry_number}</Badge> : <span className="text-muted">-</span>}
                       </td>
                       <td className="px-4 py-3 text-right">
-                        <Link href={`/animals/${a.id}`} aria-label={`Open ${a.tag_id}`} className="text-muted group-hover:text-primary">
+                        <Link href={`/animals/${a.id}`} aria-label={t("Open {tag}", { tag: a.tag_id })} className="text-muted group-hover:text-primary">
                           <FontAwesomeIcon icon={faChevronRight} className="text-xs" />
                         </Link>
                       </td>
@@ -203,7 +204,7 @@ export function AnimalsExplorer({ animals, ranches }: { animals: AnimalOut[]; ra
           {rows.length > shown.length && (
             <div className="text-center">
               <button onClick={() => setLimit((l) => l + PAGE)} className="rounded-xl border border-line bg-surface px-5 py-2.5 text-sm font-medium transition hover:bg-surface2 active:scale-[0.98]">
-                Show {Math.min(PAGE, rows.length - shown.length)} more
+                {t("Show {n} more", { n: Math.min(PAGE, rows.length - shown.length) })}
               </button>
             </div>
           )}

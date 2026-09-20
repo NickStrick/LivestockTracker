@@ -9,7 +9,9 @@ import { faChartPie, faClipboardCheck, faClockRotateLeft, faCow, faMap } from "@
 import { NotificationsBell } from "@/components/alerts/NotificationsBell";
 import { WhatsNewButton } from "@/components/whatsnew/WhatsNewButton";
 import { AnnouncementBanner } from "./AnnouncementBanner";
+import { LanguageToggle } from "./LanguageToggle";
 import { ThemeToggle } from "./ThemeToggle";
+import { useI18n } from "@/lib/i18n/client";
 
 const NAV = [
   { href: "/dashboard", label: "Dashboard", icon: faChartPie },
@@ -24,17 +26,19 @@ const SECTION: Record<string, string[]> = { "/dashboard": ["/dashboard", "/vacci
 const isActive = (path: string, href: string) => (SECTION[href] ?? [href]).some((p) => path === p || path.startsWith(p + "/"));
 
 function Logo({ compact }: { compact?: boolean }) {
+  const { t } = useI18n();
   return (
     <Link href="/dashboard" className="flex items-center gap-2.5">
       <span className="grid size-9 place-items-center rounded-xl bg-primary text-primary-fg">
         <FontAwesomeIcon icon={faCow} />
       </span>
-      {!compact && <span className="text-lg font-semibold tracking-tight">Estancia</span>}
+      {!compact && <span className="text-lg font-semibold tracking-tight max-[380px]:hidden">{t("Estancia")}</span>}
     </Link>
   );
 }
 
 export function AppShell({ children }: { children: React.ReactNode }) {
+  const { t } = useI18n();
   const path = usePathname();
 
   return (
@@ -56,7 +60,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <Link
                 key={n.href}
                 href={n.href}
-                title={n.label}
+                title={t(n.label)}
                 className={clsx(
                   "relative flex h-11 items-center justify-center gap-3 rounded-xl px-3 text-sm font-medium transition-colors lg:justify-start",
                   active ? "text-primary" : "text-muted hover:text-fg",
@@ -70,15 +74,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   />
                 )}
                 <FontAwesomeIcon icon={n.icon} className="relative w-5 text-base" />
-                <span className="relative hidden lg:inline">{n.label}</span>
+                <span className="relative hidden lg:inline">{t(n.label)}</span>
               </Link>
             );
           })}
         </nav>
         <div className="flex flex-col items-center gap-3 border-t border-line p-3 lg:flex-row lg:justify-between lg:px-5">
           <div className="hidden min-w-0 lg:block">
-            <p className="truncate text-sm font-medium">Bartlett Cattle Co.</p>
-            <p className="truncate text-xs text-muted">2 ranches</p>
+            <p className="truncate text-sm font-medium">{t("Bartlett Cattle Co.")}</p>
+            <p className="truncate text-xs text-muted">{t("2 ranches")}</p>
           </div>
           <ThemeToggle />
         </div>
@@ -91,10 +95,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <div className="md:hidden">
           <Logo />
         </div>
-        <p className="hidden text-sm text-muted md:block">Bartlett Cattle Co.</p>
+        <p className="hidden text-sm text-muted md:block">{t("Bartlett Cattle Co.")}</p>
         <div className="flex items-center gap-2">
           <WhatsNewButton />
           <NotificationsBell />
+          <LanguageToggle />
           <span className="md:hidden">
             <ThemeToggle />
           </span>
@@ -106,7 +111,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       {/* Bottom tab bar (mobile only) */}
       <nav
         className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden"
-        aria-label="Primary"
+        aria-label={t("Primary")}
       >
         <ul className="mx-auto grid max-w-lg grid-cols-5">
           {NAV.map((n) => {
@@ -128,7 +133,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                     />
                   )}
                   <FontAwesomeIcon icon={n.icon} className="text-lg" />
-                  {n.label}
+                  {t(n.label)}
                 </Link>
               </li>
             );

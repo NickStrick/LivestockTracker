@@ -20,21 +20,25 @@ import {
   listWeights,
 } from "@/lib/api";
 import { MOCK_NOW } from "@/lib/mock/seed";
-import { DOC_TYPE_LABEL, ageLabel, fmtDate, fmtNum, titleCase } from "@/lib/format";
+import { DOC_TYPE_LABEL } from "@/lib/format";
 import { DocStatusBadge, MovementStatusBadge } from "@/components/compliance/badges";
 import { AuditTimeline } from "@/components/AuditTimeline";
 import { WeightSparkline } from "@/components/charts/Charts";
 import { IdentifiersCard } from "@/components/animals/IdentifiersCard";
 import { LineageTree } from "@/components/animals/LineageTree";
 import { FadeIn } from "@/components/motion";
-import { Badge, Card, CardHeader, Empty, Field, PageHeader, ProvisionalNote, StatusBadge, btn } from "@/components/ui";
+import { Badge, Card, CardHeader, Empty, Field, PageHeader, ProvisionalNote, StatusBadge } from "@/components/ui";
+import { btn } from "@/components/ui-styles";
+import { getI18n } from "@/lib/i18n/server";
 
 export async function generateMetadata({ params }: PageProps<"/animals/[id]">): Promise<Metadata> {
+  const { t } = await getI18n();
   const a = await getAnimal((await params).id);
-  return { title: a ? a.tag_id : "Animal" };
+  return { title: a ? a.tag_id : t("Animal") };
 }
 
 export default async function AnimalPage({ params }: PageProps<"/animals/[id]">) {
+  const { t, ageLabel, fmtDate, fmtNum, titleCase } = await getI18n();
   const { id } = await params;
   const animal = await getAnimal(id);
   if (!animal) notFound();
@@ -64,12 +68,12 @@ export default async function AnimalPage({ params }: PageProps<"/animals/[id]">)
       <PageHeader
         title={animal.tag_id}
         back={{ href: "/animals", label: "Animals" }}
-        subtitle={[animal.gender && titleCase(animal.gender), animal.color, ageLabel(animal.dob)].filter(Boolean).join(" · ")}
+        subtitle={[animal.gender && titleCase(animal.gender), animal.color && t(animal.color), ageLabel(animal.dob)].filter(Boolean).join(" · ")}
         actions={
           <>
             <StatusBadge status={animal.status} />
             <Link href={`/animals/${id}/edit`} className={btn.ghost}>
-              <FontAwesomeIcon icon={faPen} /> Edit
+              <FontAwesomeIcon icon={faPen} /> {t("Edit")}
             </Link>
           </>
         }
@@ -79,7 +83,7 @@ export default async function AnimalPage({ params }: PageProps<"/animals/[id]">)
         <FadeIn className="mb-4 flex items-start gap-3 rounded-2xl border border-danger/40 bg-danger/10 p-3.5 text-sm text-danger">
           <FontAwesomeIcon icon={faLocationDot} className="mt-0.5" />
           <p>
-            <b>Outside ranch boundary.</b> Last GPS ping at {position.lat.toFixed(4)}, {position.lon.toFixed(4)}.
+            <b>{t("Outside ranch boundary.")}</b> {t("Last GPS ping at {lat}, {lon}.", { lat: position.lat.toFixed(4), lon: position.lon.toFixed(4) })}
           </p>
         </FadeIn>
       )}
@@ -87,34 +91,34 @@ export default async function AnimalPage({ params }: PageProps<"/animals/[id]">)
       <div className="grid gap-4 sm:gap-6 lg:grid-cols-3">
         <div className="space-y-4 sm:space-y-6 lg:col-span-2">
           <Card>
-            <CardHeader title="Overview" icon={faVenusMars} />
+            <CardHeader title={t("Overview")} icon={faVenusMars} />
             <dl className="grid grid-cols-2 gap-x-4 gap-y-4 p-4 sm:grid-cols-3 sm:p-5">
-              <Field label="Ranch" value={ranch ? <Link href={`/ranches/${ranch.id}`} className="text-primary hover:underline">{ranch.name}</Link> : null} />
-              <Field label="Born" value={fmtDate(animal.dob)} />
-              <Field label="Age" value={ageLabel(animal.dob)} />
-              <Field label="Breed association" value={animal.breed_association} />
-              <Field label="Registry #" value={animal.registry_number && <span className="font-mono">{animal.registry_number}</span>} />
-              <Field label="Registered" value={fmtDate(animal.created_at)} />
-              {animal.status === "deceased" && <Field label="Cause of death" value={animal.cause_of_death} />}
-              <Field label="Last weight" value={lastW ? `${fmtNum(lastW.weight_lb)} lb${prevW ? ` (${lastW.weight_lb >= prevW.weight_lb ? "+" : ""}${lastW.weight_lb - prevW.weight_lb})` : ""}` : null} />
+              <Field label={t("Ranch")} value={ranch ? <Link href={`/ranches/${ranch.id}`} className="text-primary hover:underline">{ranch.name}</Link> : null} />
+              <Field label={t("Born")} value={fmtDate(animal.dob)} />
+              <Field label={t("Age")} value={ageLabel(animal.dob)} />
+              <Field label={t("Breed association")} value={animal.breed_association} />
+              <Field label={t("Registry #")} value={animal.registry_number && <span className="font-mono">{animal.registry_number}</span>} />
+              <Field label={t("Registered")} value={fmtDate(animal.created_at)} />
+              {animal.status === "deceased" && <Field label={t("Cause of death")} value={animal.cause_of_death} />}
+              <Field label={t("Last weight")} value={lastW ? `${fmtNum(lastW.weight_lb)} lb${prevW ? ` (${lastW.weight_lb >= prevW.weight_lb ? "+" : ""}${lastW.weight_lb - prevW.weight_lb})` : ""}` : null} />
             </dl>
           </Card>
 
           <Card>
-            <CardHeader title="Weight history" icon={faWeightScale} action={<ProvisionalNote>Mock health-service data</ProvisionalNote>} />
+            <CardHeader title={t("Weight history")} icon={faWeightScale} action={<ProvisionalNote>{t("Mock health-service data")}</ProvisionalNote>} />
             {weights.length > 1 ? (
               <div className="p-3 sm:p-5">
                 <WeightSparkline data={weights} />
               </div>
             ) : (
-              <Empty>Not enough weigh-ins to chart.</Empty>
+              <Empty>{t("Not enough weigh-ins to chart.")}</Empty>
             )}
           </Card>
 
           <Card>
-            <CardHeader title="Vaccinations" icon={faSyringe} action={<ProvisionalNote>Mock health-service data</ProvisionalNote>} />
+            <CardHeader title={t("Vaccinations")} icon={faSyringe} action={<ProvisionalNote>{t("Mock health-service data")}</ProvisionalNote>} />
             {vaccinations.length === 0 ? (
-              <Empty>No vaccinations recorded.</Empty>
+              <Empty>{t("No vaccinations recorded.")}</Empty>
             ) : (
               <ul className="divide-y divide-line">
                 {vaccinations.map((v) => {
@@ -129,7 +133,7 @@ export default async function AnimalPage({ params }: PageProps<"/animals/[id]">)
                           {fmtDate(v.administered_at)} · {v.dose_ml} mL · {v.administered_by}
                         </p>
                       </div>
-                      <Badge tone={overdue ? "danger" : soon ? "warn" : "ok"}>{overdue ? "Overdue" : "Next"} {fmtDate(v.next_due_at)}</Badge>
+                      <Badge tone={overdue ? "danger" : soon ? "warn" : "ok"}>{overdue ? t("Overdue") : t("Next")} {fmtDate(v.next_due_at)}</Badge>
                     </li>
                   );
                 })}
@@ -138,9 +142,9 @@ export default async function AnimalPage({ params }: PageProps<"/animals/[id]">)
           </Card>
 
           <Card>
-            <CardHeader title="Health observations" icon={faHeartPulse} action={<ProvisionalNote>Mock health-service data</ProvisionalNote>} />
+            <CardHeader title={t("Health observations")} icon={faHeartPulse} action={<ProvisionalNote>{t("Mock health-service data")}</ProvisionalNote>} />
             {observations.length === 0 ? (
-              <Empty>No observations logged.</Empty>
+              <Empty>{t("No observations logged.")}</Empty>
             ) : (
               <ul className="divide-y divide-line">
                 {observations.map((o) => (
@@ -149,7 +153,7 @@ export default async function AnimalPage({ params }: PageProps<"/animals/[id]">)
                     <div className="min-w-0 flex-1">
                       <p className="text-sm">{o.notes}</p>
                       <p className="mt-0.5 text-xs text-muted">
-                        {fmtDate(o.observed_at)} · {o.kind === "symptom" ? "Symptom" : "Routine check"}
+                        {fmtDate(o.observed_at)} · {o.kind === "symptom" ? t("Symptom") : t("Routine check")}
                       </p>
                     </div>
                   </li>
@@ -160,9 +164,9 @@ export default async function AnimalPage({ params }: PageProps<"/animals/[id]">)
 
           {(female || breeding.length > 0) && (
             <Card>
-              <CardHeader title="Breeding" icon={faDna} action={<ProvisionalNote>Mock health-service data</ProvisionalNote>} />
+              <CardHeader title={t("Breeding")} icon={faDna} action={<ProvisionalNote>{t("Mock health-service data")}</ProvisionalNote>} />
               {breeding.length === 0 ? (
-                <Empty>No breeding events.</Empty>
+                <Empty>{t("No breeding events.")}</Empty>
               ) : (
                 <ul className="divide-y divide-line">
                   {breeding.map((b) => (
@@ -184,11 +188,11 @@ export default async function AnimalPage({ params }: PageProps<"/animals/[id]">)
           <IdentifiersCard animalId={id} initial={identifiers} />
 
           <Card>
-            <CardHeader title="Lineage" icon={faDna} sub="Up to 3 generations" />
-            {lineage && (lineage.sire || lineage.dam) ? <LineageTree root={lineage} /> : <Empty>No parentage on record.</Empty>}
+            <CardHeader title={t("Lineage")} icon={faDna} sub={t("Up to 3 generations")} />
+            {lineage && (lineage.sire || lineage.dam) ? <LineageTree root={lineage} /> : <Empty>{t("No parentage on record.")}</Empty>}
             {offspring.length > 0 && (
               <div className="border-t border-line px-4 py-3 sm:px-5">
-                <p className="mb-2 text-[11px] font-medium uppercase tracking-wide text-muted">Offspring ({offspring.length})</p>
+                <p className="mb-2 text-[11px] font-medium uppercase tracking-wide text-muted">{t("Offspring ({n})", { n: offspring.length })}</p>
                 <div className="flex flex-wrap gap-1.5">
                   {offspring.map((o) => (
                     <Link key={o.id} href={`/animals/${o.id}`} className="rounded-lg border border-line px-2 py-1 font-mono text-xs transition hover:border-primary hover:text-primary">
@@ -202,16 +206,15 @@ export default async function AnimalPage({ params }: PageProps<"/animals/[id]">)
 
           <Card>
             <CardHeader
-              title="Compliance"
+              title={t("Compliance")}
               icon={faClipboardCheck}
               action={
-                <Link href={`/compliance/documents/new?animal=${id}`} className="-mx-2 inline-flex min-h-10 items-center px-2 text-xs font-medium text-primary hover:underline">
-                  Upload
+                <Link href={`/compliance/documents/new?animal=${id}`} className="-mx-2 inline-flex min-h-10 items-center px-2 text-xs font-medium text-primary hover:underline">{t("Upload")}
                 </Link>
               }
             />
             {movements.length === 0 && documents.length === 0 ? (
-              <Empty>No movements or documents on file.</Empty>
+              <Empty>{t("No movements or documents on file.")}</Empty>
             ) : (
               <ul className="divide-y divide-line">
                 {movements.map((m) => (
@@ -219,7 +222,7 @@ export default async function AnimalPage({ params }: PageProps<"/animals/[id]">)
                     <Link href={`/compliance/movements/${m.id}`} className="flex items-center justify-between gap-3 px-4 py-3 transition-colors hover:bg-surface2 sm:px-5">
                       <div className="min-w-0">
                         <p className="truncate text-sm font-medium">
-                          {m.direction === "out" ? "To" : "From"} {(m.direction === "out" ? m.destination : m.origin).split(",")[0]}
+                          {m.direction === "out" ? t("To") : t("From")} {(m.direction === "out" ? m.destination : m.origin).split(",")[0]}
                         </p>
                         <p className="text-xs text-muted">
                           {titleCase(m.purpose)} · {fmtDate(m.moved_at)}
@@ -234,7 +237,7 @@ export default async function AnimalPage({ params }: PageProps<"/animals/[id]">)
                     <Link href={`/compliance/documents/${d.id}`} className="flex items-center justify-between gap-3 px-4 py-3 transition-colors hover:bg-surface2 sm:px-5">
                       <div className="min-w-0">
                         <p className="truncate text-sm font-medium">{d.title}</p>
-                        <p className="text-xs text-muted">{DOC_TYPE_LABEL[d.doc_type]}</p>
+                        <p className="text-xs text-muted">{t(DOC_TYPE_LABEL[d.doc_type])}</p>
                       </div>
                       <DocStatusBadge status={d.status} daysLeft={d.days_left} />
                     </Link>
@@ -245,7 +248,7 @@ export default async function AnimalPage({ params }: PageProps<"/animals/[id]">)
           </Card>
 
           <Card>
-            <CardHeader title="Audit trail" icon={faClockRotateLeft} />
+            <CardHeader title={t("Audit trail")} icon={faClockRotateLeft} />
             <AuditTimeline events={audit} showAnimal={false} compact />
           </Card>
         </div>

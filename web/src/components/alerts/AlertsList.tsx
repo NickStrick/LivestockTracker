@@ -5,14 +5,17 @@ import clsx from "clsx";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCheckDouble } from "@fortawesome/free-solid-svg-icons";
 import type { AlertSeverity } from "@/lib/types";
-import { Card, btn } from "@/components/ui";
+import { Card } from "@/components/ui";
+import { btn } from "@/components/ui-styles";
 import { AlertRow } from "./AlertRow";
 import { useAlerts } from "./AlertsProvider";
 import { SEVERITY_META } from "./alertMeta";
+import { useI18n } from "@/lib/i18n/client";
 
 type Filter = "all" | AlertSeverity;
 
 export function AlertsList() {
+  const { t } = useI18n();
   const { alerts, unreadCount, ready, isRead, markRead, markAllRead } = useAlerts();
   const [filter, setFilter] = useState<Filter>("all");
   const [unreadOnly, setUnreadOnly] = useState(false);
@@ -40,25 +43,24 @@ export function AlertsList() {
                 )}
               >
                 {f !== "all" && <span className={clsx("size-2 rounded-full", filter === f ? "bg-current" : SEVERITY_META[f].dot)} />}
-                {f === "all" ? "All" : SEVERITY_META[f].label} <span className="opacity-70">{counts[f] ?? 0}</span>
+                {f === "all" ? t("All") : t(SEVERITY_META[f].label)} <span className="opacity-70">{counts[f] ?? 0}</span>
               </button>
             ))}
           </div>
         </div>
         <div className="flex items-center gap-2">
           <label className="inline-flex min-h-10 cursor-pointer items-center gap-2 text-sm text-muted">
-            <input type="checkbox" checked={unreadOnly} onChange={(e) => setUnreadOnly(e.target.checked)} className="size-5 accent-[var(--primary)]" />
-            Unread only
+            <input type="checkbox" checked={unreadOnly} onChange={(e) => setUnreadOnly(e.target.checked)} className="size-5 accent-[var(--primary)]" /> {t("Unread only")}
           </label>
           <button onClick={markAllRead} disabled={!ready || unreadCount === 0} className={btn.ghost}>
-            <FontAwesomeIcon icon={faCheckDouble} /> Mark all read
+            <FontAwesomeIcon icon={faCheckDouble} /> {t("Mark all read")}
           </button>
         </div>
       </div>
 
       <Card>
         {rows.length === 0 ? (
-          <p className="px-5 py-14 text-center text-sm text-muted">{unreadOnly ? "You're all caught up." : "No alerts match this filter."}</p>
+          <p className="px-5 py-14 text-center text-sm text-muted">{unreadOnly ? t("You're all caught up.") : t("No alerts match this filter.")}</p>
         ) : (
           <div className="divide-y divide-line">
             {rows.map((a) => (
