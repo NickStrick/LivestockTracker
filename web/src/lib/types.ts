@@ -45,6 +45,8 @@ export interface AnimalCreate {
 
 export interface AnimalUpdate {
   nickname?: string | null; // PROVISIONAL
+  sire_id?: string | null; // PROVISIONAL (lineage update)
+  dam_id?: string | null; // PROVISIONAL (lineage update)
   color?: string | null;
   gender?: string | null;
   status?: AnimalStatus | null;
@@ -366,4 +368,23 @@ export interface BreachRow {
   lon: number;
   lat: number;
   distance_m: number;
+}
+
+// ---------- PROVISIONAL: cost estimates ----------
+
+export const CURRENCIES = ["USD", "MXN"] as const;
+export type Currency = (typeof CURRENCIES)[number];
+
+export const COST_BASES = ["market", "appraisal", "purchase", "other"] as const;
+export type CostBasis = (typeof COST_BASES)[number];
+
+/** PROVISIONAL: an estimate of what an animal is worth (or cost) at a point in time. */
+export interface CostEstimate {
+  id: string;
+  animal_id: string;
+  estimated_at: string; // date
+  amount: number;
+  currency: Currency;
+  basis: CostBasis;
+  notes: string | null;
 }

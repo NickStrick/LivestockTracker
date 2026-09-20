@@ -8,6 +8,7 @@ import type {
   AuditEventOut,
   BreedingEvent,
   ComplianceDocument,
+  CostEstimate,
   MovementRecord,
   GpsPosition,
   HealthObservation,
@@ -21,6 +22,7 @@ import type {
   ZoneType,
 } from "../types";
 import { pointInRing } from "../geo";
+import { VACCINE_CATALOG } from "../vaccines";
 
 import { MOCK_NOW } from "../clock";
 export { MOCK_NOW };
@@ -210,6 +212,19 @@ const NICKNAMES: Record<string, string> = { "RS-101": "Duke", "RS-105": "Bella",
 for (const a of animals) if (NICKNAMES[a.tag_id]) a.nickname = NICKNAMES[a.tag_id];
 
 const byId = new Map(animals.map((a) => [a.id, a]));
+
+// A few example cost estimates so the card is not empty (PROVISIONAL data).
+export const costEstimates: CostEstimate[] = [];
+{
+  const byTag = new Map(animals.map((a) => [a.tag_id, a]));
+  const add = (tag: string, estimated_at: string, amount: number, basis: CostEstimate["basis"], notes: string | null = null) => {
+    const a = byTag.get(tag);
+    if (a) costEstimates.push({ id: `est_${String(costEstimates.length + 1).padStart(3, "0")}`, animal_id: a.id, estimated_at, amount, currency: "USD", basis, notes });
+  };
+  add("RS-108", "2026-03-10", 1650, "market", "Spring auction average for bred cows.");
+  add("RS-108", "2026-08-20", 1780, "market");
+  add("RS-101", "2026-06-01", 3200, "appraisal", "Breed association appraisal.");
+}
 export const getById = (id: string) => byId.get(id);
 
 // ---------- identifiers ----------
@@ -248,13 +263,7 @@ export const weights: WeightRecord[] = [];
 
 // ---------- vaccinations ----------
 
-const VACCINES: [string, number, number][] = [
-  ["7-way Clostridial", 2, 365],
-  ["BVD/IBR/PI3/BRSV", 2, 365],
-  ["Blackleg", 2, 180],
-  ["Brucellosis (RB51)", 2, 3650],
-  ["Leptospirosis", 2, 365],
-];
+const VACCINES: [string, number, number][] = VACCINE_CATALOG.map((v) => [v.name, 2, v.interval_days]);
 const VETS = ["Dr. Ortiz", "Dr. Lindqvist", "Ranch hand (M. Gomez)"];
 export const vaccinations: Vaccination[] = [];
 {

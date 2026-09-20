@@ -8,6 +8,7 @@ import {
   animals,
   audit,
   breeding,
+  costEstimates,
   documents,
   getById,
   identifiers,
@@ -21,6 +22,7 @@ import {
 } from "./mock/seed";
 import { distanceToRingMeters, ringAcres } from "./geo";
 import { animalLabel } from "./format";
+import type { EstimateInput, LineageInput, ObservationInput, VaccinationInput, WeightInput } from "./recordSchemas";
 import type {
   Alert,
   AlertSeverity,
@@ -29,6 +31,7 @@ import type {
   BreachRow,
   BreedingEvent,
   ComplianceSummary,
+  CostEstimate,
   DocStatus,
   DocumentView,
   DashboardData,
@@ -138,6 +141,111 @@ export async function listWeights(animalId: string): Promise<WeightRecord[]> {
 }
 export async function getPosition(animalId: string): Promise<GpsPosition | null> {
   return isActiveAnimal(animalId) ? (positions.find((p) => p.animal_id === animalId) ?? null) : null;
+}
+
+// ---- recording new information (MOCK: changes the in-memory example data) ---------------------
+// Each function below is where a real POST/PATCH goes once the backend exists. Until then they update
+// the example data so every screen reflects the change; it resets when the server restarts.
+
+export type RecordResult = { ok: true } | { ok: false; error: string };
+export interface ParentOption {
+  id: string;
+  tag_id: string;
+  nickname: string | null;
+  ranch_name: string;
+  status: string;
+}
+
+const noon = (d: string) => `${d}T12:00:00.000Z`;
+const audited = (a: AnimalOut, type: string, data: Record<string, unknown>) =>
+  audit.unshift({ id: `aud_u${audit.length}`, animal_id: a.id, ranch_id: a.ranch_id, event_type: type, event_data: data, actor_id: "usr_maria.gomez", occurred_at: MOCK_NOW.toISOString() });
+const NOT_FOUND: RecordResult = { ok: false, error: "We couldn't find that animal." };
+
+/** PROVISIONAL: newest first. */
+export async function listCostEstimates(animalId: string): Promise<CostEstimate[]> {
+  // newest first; two on the same day: the one added last leads
+  return costEstimates.filter((e) => e.animal_id === animalId).reverse().sort((a, b) => b.estimated_at.localeCompare(a.estimated_at));
+}
+
+export async function recordObservation(animalId: string, v: ObservationInput): Promise<RecordResult> {
+  const a = getById(animalId);
+  if (!a) return NOT_FOUND;
+  observations.push({ id: `obs_u${observations.length}`, animal_id: a.id, observed_at: noon(v.observed_at), kind: v.kind, severity: v.severity, notes: v.notes });
+  audited(a, "health_recorded", { kind: v.kind, severity: v.severity, notes: v.notes });
+  return { ok: true };
+}
+
+export async function recordVaccination(animalId: string, v: VaccinationInput): Promise<RecordResult> {
+  const a = getById(animalId);
+  if (!a) return NOT_FOUND;
+  vaccinations.push({
+    id: `vac_u${vaccinations.length}`,
+    animal_id: a.id,
+    vaccine: v.vaccine,
+    dose_ml: v.dose_ml,
+    administered_at: noon(v.administered_at),
+    administered_by: v.administered_by,
+    next_due_at: noon(v.next_due_at),
+  });
+  audited(a, "vaccination_recorded", { vaccine: v.vaccine, dose_ml: v.dose_ml, next_due_at: v.next_due_at });
+  return { ok: true };
+}
+
+export async function recordWeight(animalId: string, v: WeightInput): Promise<RecordResult> {
+  const a = getById(animalId);
+  if (!a) return NOT_FOUND;
+  weights.push({ id: `wgt_u${weights.length}`, animal_id: a.id, weighed_at: noon(v.weighed_at), weight_lb: v.weight_lb });
+  audited(a, "weight_recorded", { weight_lb: v.weight_lb });
+  return { ok: true };
+}
+
+export async function recordCostEstimate(animalId: string, v: EstimateInput): Promise<RecordResult> {
+  const a = getById(animalId);
+  if (!a) return NOT_FOUND;
+  costEstimates.push({ id: `est_u${costEstimates.length}`, animal_id: a.id, estimated_at: v.estimated_at, amount: v.amount, currency: v.currency, basis: v.basis, notes: v.notes });
+  audited(a, "estimate_recorded", { amount: v.amount, currency: v.currency, basis: v.basis });
+  return { ok: true };
+}
+
+function descendantsOf(id: string): Set<string> {
+  const out = new Set<string>();
+  const stack = [id];
+  while (stack.length) {
+    const cur = stack.pop()!;
+    for (const x of animals) {
+      if ((x.sire_id === cur || x.dam_id === cur) && !out.has(x.id)) {
+        out.add(x.id);
+        stack.push(x.id);
+      }
+    }
+  }
+  return out;
+}
+
+/** Animals that could be this animal's sire (bulls) or dam (cows, heifers): never itself or its own offspring. */
+export async function listParentCandidates(animalId: string): Promise<{ sires: ParentOption[]; dams: ParentOption[] }> {
+  const banned = descendantsOf(animalId);
+  banned.add(animalId);
+  const ranchName = new Map(ranches.map((r) => [r.id, r.name]));
+  const opt = (a: AnimalOut): ParentOption => ({ id: a.id, tag_id: a.tag_id, nickname: a.nickname ?? null, ranch_name: ranchName.get(a.ranch_id) ?? "", status: a.status });
+  const pool = animals.filter((a) => !banned.has(a.id));
+  return { sires: pool.filter((a) => a.gender === "bull").map(opt), dams: pool.filter((a) => a.gender === "cow" || a.gender === "heifer").map(opt) };
+}
+
+export async function updateLineage(animalId: string, v: LineageInput): Promise<RecordResult> {
+  const a = getById(animalId);
+  if (!a) return NOT_FOUND;
+  const banned = descendantsOf(animalId);
+  banned.add(animalId);
+  const sire = v.sire_id ? getById(v.sire_id) : null;
+  const dam = v.dam_id ? getById(v.dam_id) : null;
+  if (v.sire_id && (!sire || sire.gender !== "bull")) return { ok: false, error: "Choose a bull as the sire." };
+  if (v.dam_id && (!dam || (dam.gender !== "cow" && dam.gender !== "heifer"))) return { ok: false, error: "Choose a cow or heifer as the dam." };
+  if ((sire && banned.has(sire.id)) || (dam && banned.has(dam.id))) return { ok: false, error: "An animal can't be its own ancestor." };
+  a.sire_id = sire?.id ?? null;
+  a.dam_id = dam?.id ?? null;
+  audited(a, "lineage_updated", { sire: sire?.tag_id ?? null, dam: dam?.tag_id ?? null });
+  return { ok: true };
 }
 
 // ---- ranches & zones -----------------------------------------------------

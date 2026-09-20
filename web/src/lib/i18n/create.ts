@@ -71,6 +71,9 @@ function lookupEs(key: string): string | undefined {
   return undefined;
 }
 
+/** English keys for the cost-estimate basis options (translate with t()). */
+export const COST_BASIS_LABEL: Record<string, string> = { market: "Market price", appraisal: "Appraisal", purchase: "Purchase price", other: "Other" };
+
 export function createI18n(locale: Locale) {
   const intl = INTL_LOCALE[locale];
 
@@ -90,6 +93,7 @@ export function createI18n(locale: Locale) {
   const fmtMonth = (s: string) => asDate(s).toLocaleDateString(intl, { month: "short", timeZone: "UTC" });
   const fmtDateTime = (s: string) => new Date(s).toLocaleString(intl, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit", timeZone: "UTC" });
   const fmtNum = (n: number) => n.toLocaleString(intl);
+  const fmtMoney = (amount: number, currency: string) => amount.toLocaleString(intl, { style: "currency", currency, maximumFractionDigits: amount % 1 ? 2 : 0 });
   const fmtSize = (kb: number) => (kb >= 1024 ? `${(kb / 1024).toFixed(1)} MB` : `${kb} KB`);
 
   /** Relative to the mock "now" so server and client agree. Swap for Date.now() with real data. */
@@ -130,6 +134,10 @@ export function createI18n(locale: Locale) {
     geofence_breach: "Geofence breach",
     movement_recorded: "Movement recorded",
     document_uploaded: "Document uploaded",
+    health_recorded: "Health observation recorded",
+    weight_recorded: "Weight recorded",
+    estimate_recorded: "Cost estimate recorded",
+    lineage_updated: "Lineage updated",
   };
   const eventLabel = (type: string) => t(EVENT_LABELS[type] ?? baseTitleCase(type));
 
@@ -155,6 +163,14 @@ export function createI18n(locale: Locale) {
       }
       case "document_uploaded":
         return String(d.title);
+      case "health_recorded":
+        return `${t(d.kind === "symptom" ? "Symptom" : "Routine check")} (${titleCase(String(d.severity)).toLowerCase()}): ${d.notes}`;
+      case "weight_recorded":
+        return `${fmtNum(Number(d.weight_lb))} lb`;
+      case "estimate_recorded":
+        return `${fmtMoney(Number(d.amount), String(d.currency))} (${t(COST_BASIS_LABEL[String(d.basis)] ?? "Other")})`;
+      case "lineage_updated":
+        return t("Sire {sire}, dam {dam}", { sire: String(d.sire ?? "-"), dam: String(d.dam ?? "-") });
       case "zone_created":
         return `${d.name} (${titleCase(String(d.zone_type))})`;
       case "zone_updated":
@@ -166,7 +182,7 @@ export function createI18n(locale: Locale) {
     }
   };
 
-  return { locale, intl, t, titleCase, fmtDate, fmtShortDate, fmtMonth, fmtDateTime, fmtNum, fmtSize, timeAgo, ageLabel, actorName, eventLabel, eventSummary };
+  return { locale, intl, t, titleCase, fmtDate, fmtShortDate, fmtMonth, fmtDateTime, fmtNum, fmtMoney, fmtSize, timeAgo, ageLabel, actorName, eventLabel, eventSummary };
 }
 
 export type I18n = ReturnType<typeof createI18n>;

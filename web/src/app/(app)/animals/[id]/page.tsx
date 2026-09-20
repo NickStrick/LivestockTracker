@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import clsx from "clsx";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faClipboardCheck, faPrint, faClockRotateLeft, faDna, faHeartPulse, faLocationDot, faPen, faSyringe, faVenusMars, faWeightScale } from "@fortawesome/free-solid-svg-icons";
+import { faClipboardCheck, faPrint, faClockRotateLeft, faDna, faHeartPulse, faSackDollar, faLocationDot, faPen, faSyringe, faVenusMars, faWeightScale } from "@fortawesome/free-solid-svg-icons";
 import {
   getAnimal,
   getAnimalAuditTrail,
@@ -13,9 +13,11 @@ import {
   listAnimalDocuments,
   listAnimalMovements,
   listBreeding,
+  listCostEstimates,
   listIdentifiers,
   listObservations,
   listOffspring,
+  listParentCandidates,
   listVaccinations,
   listWeights,
 } from "@/lib/api";
@@ -24,11 +26,13 @@ import { DOC_TYPE_LABEL } from "@/lib/format";
 import { DocStatusBadge, MovementStatusBadge } from "@/components/compliance/badges";
 import { AuditTimeline } from "@/components/AuditTimeline";
 import { WeightSparkline } from "@/components/charts/Charts";
+import { RecordMenu } from "@/components/animals/record/RecordMenu";
 import { IdentifiersCard } from "@/components/animals/IdentifiersCard";
 import { LineageTree } from "@/components/animals/LineageTree";
 import { FadeIn } from "@/components/motion";
 import { Badge, Card, CardHeader, Empty, Field, PageHeader, ProvisionalNote, StatusBadge } from "@/components/ui";
 import { btn } from "@/components/ui-styles";
+import { COST_BASIS_LABEL } from "@/lib/i18n/create";
 import { getI18n } from "@/lib/i18n/server";
 import { animalLabel } from "@/lib/format";
 
@@ -39,12 +43,12 @@ export async function generateMetadata({ params }: PageProps<"/animals/[id]">): 
 }
 
 export default async function AnimalPage({ params }: PageProps<"/animals/[id]">) {
-  const { t, ageLabel, fmtDate, fmtNum, titleCase } = await getI18n();
+  const { t, ageLabel, fmtDate, fmtNum, fmtMoney, titleCase } = await getI18n();
   const { id } = await params;
   const animal = await getAnimal(id);
   if (!animal) notFound();
 
-  const [ranch, identifiers, weights, vaccinations, observations, breeding, lineage, offspring, audit, position, movements, documents] = await Promise.all([
+  const [ranch, identifiers, weights, vaccinations, observations, breeding, lineage, offspring, audit, position, movements, documents, estimates, parents] = await Promise.all([
     getRanch(animal.ranch_id),
     listIdentifiers(id),
     listWeights(id),
@@ -57,11 +61,14 @@ export default async function AnimalPage({ params }: PageProps<"/animals/[id]">)
     getPosition(id),
     listAnimalMovements(id),
     listAnimalDocuments(id),
+    listCostEstimates(id),
+    listParentCandidates(id),
   ]);
 
   const lastW = weights.at(-1);
   const prevW = weights.at(-2);
   const now = MOCK_NOW.getTime();
+  const latestEstimate = estimates[0];
   const female = animal.gender === "cow" || animal.gender === "heifer";
 
   return (
@@ -79,6 +86,7 @@ export default async function AnimalPage({ params }: PageProps<"/animals/[id]">)
         actions={
           <>
             <StatusBadge status={animal.status} />
+            <RecordMenu animalId={id} lastWeight={lastW?.weight_lb ?? null} parents={parents} current={{ sire_id: animal.sire_id ?? null, dam_id: animal.dam_id ?? null }} />
             <Link href={`/animals/${id}/edit`} className={btn.ghost}>
               <FontAwesomeIcon icon={faPen} /> {t("Edit")}
             </Link>
@@ -111,6 +119,7 @@ export default async function AnimalPage({ params }: PageProps<"/animals/[id]">)
               <Field label={t("Registry #")} value={animal.registry_number && <span className="font-mono">{animal.registry_number}</span>} />
               <Field label={t("Registered")} value={fmtDate(animal.created_at)} />
               {animal.status === "deceased" && <Field label={t("Cause of death")} value={animal.cause_of_death} />}
+              <Field label={t("Estimated value")} value={latestEstimate && fmtMoney(latestEstimate.amount, latestEstimate.currency)} />
               <Field label={t("Last weight")} value={lastW ? `${fmtNum(lastW.weight_lb)} lb${prevW ? ` (${lastW.weight_lb >= prevW.weight_lb ? "+" : ""}${lastW.weight_lb - prevW.weight_lb})` : ""}` : null} />
             </dl>
           </Card>
@@ -123,6 +132,36 @@ export default async function AnimalPage({ params }: PageProps<"/animals/[id]">)
               </div>
             ) : (
               <Empty>{t("Not enough weigh-ins to chart.")}</Empty>
+            )}
+          </Card>
+
+          <Card>
+            <CardHeader title={t("Cost estimate")} icon={faSackDollar} action={<ProvisionalNote>{t("Mock data")}</ProvisionalNote>} />
+            {estimates.length === 0 ? (
+              <Empty>{t("No cost estimate yet. Use Record to add one.")}</Empty>
+            ) : (
+              <>
+                <div className="px-4 pt-4 sm:px-5">
+                  <p className="text-2xl font-semibold tabular-nums">{fmtMoney(latestEstimate.amount, latestEstimate.currency)}</p>
+                  <p className="mt-0.5 text-xs text-muted">
+                    {t(COST_BASIS_LABEL[latestEstimate.basis])} · {fmtDate(latestEstimate.estimated_at)}
+                  </p>
+                  {latestEstimate.notes && <p className="mt-2 text-sm">{latestEstimate.notes}</p>}
+                </div>
+                {estimates.length > 1 && (
+                  <ul className="mt-4 divide-y divide-line border-t border-line">
+                    {estimates.slice(1).map((e) => (
+                      <li key={e.id} className="flex items-center justify-between gap-3 px-4 py-2.5 text-sm sm:px-5">
+                        <span className="text-muted">
+                          {fmtDate(e.estimated_at)} · {t(COST_BASIS_LABEL[e.basis])}
+                        </span>
+                        <span className="tabular-nums">{fmtMoney(e.amount, e.currency)}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                <div className="h-4" />
+              </>
             )}
           </Card>
 
